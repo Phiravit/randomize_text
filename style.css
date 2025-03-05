@@ -1,93 +1,101 @@
 /* Drop zone styles */
 .drop-zone {
-    border: 2px dashed #cbd5e1;
-    border-radius: 16px;
-    padding: 32px;
-    text-align: center;
-    transition: all 0.3s;
-    background-color: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(5px);
-    margin-bottom: 24px;
-    cursor: pointer;
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  transition: all 0.3s;
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(5px);
+  margin-bottom: 24px;
+  cursor: pointer;
+}
+
+.drop-zone-active {
+  border-color: #6366f1;
+  background-color: rgba(224, 231, 255, 0.8);
+  transform: scale(1.02);
+}
+
+.format-hint {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+/* Error message styles */
+.error-message {
+  color: #dc2626;
+  font-size: 14px;
+  margin-top: 8px;
+  min-height: 20px;
+}
+
+/* Input-related styles */
+.input-group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* History modal styles */
+#historyModal {
+  opacity: 0;
+}
+
+#historyModal.opacity-100 {
+  opacity: 1;
+}
+
+/* Scrollbar styling */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.5);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+/* Text item animation styles */
+.text-item-selected {
+  animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: rgba(79, 70, 229, 0.1);
+    color: #4f46e5;
   }
-  
-  .drop-zone-active {
-    border-color: #6366f1;
-    background-color: rgba(224, 231, 255, 0.8);
-    transform: scale(1.02);
+  100% {
+    background-color: transparent;
+    color: inherit;
   }
-  
-  .format-hint {
-    font-size: 14px;
-    color: #6b7280;
-    margin-top: 8px;
-  }
-  
-  /* Error message styles */
-  .error-message {
-    color: #dc2626;
-    font-size: 14px;
-    margin-top: 8px;
-    min-height: 20px;
-  }
-  
-  /* Input-related styles */
-  .input-group {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* History modal styles */
-  #historyModal {
-    opacity: 0;
-  }
-  
-  #historyModal.opacity-100 {
-    opacity: 1;
-  }
-  
-  /* Scrollbar styling */
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: rgba(243, 244, 246, 0.5);
-    border-radius: 3px;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(156, 163, 175, 0.5);
-    border-radius: 3px;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(156, 163, 175, 0.8);
-  }
-  
-  /* Text item animation styles */
-  .text-item-selected {
-    animation: pulse 1s ease-in-out;
-  }
-  
-  @keyframes pulse {
-    0% {
-      background-color: rgba(79, 70, 229, 0.1);
-      color: #4f46e5;
-    }
-    100% {
-      background-color: transparent;
-      color: inherit;
-    }
-  }
-  
-  /* Text display container for vertical spacing */
-  #textDisplay {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-    justify-content: center;
-  }
-  
+}
+
+/* Text display container for vertical spacing */
+#textDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1; /* Always show the buttons */
+  display: block; /* Ensure they remain visible */
+}
+
+input[type="number"] {
+  -moz-appearance: textfield; /* Ensures Firefox keeps the controls */
+}

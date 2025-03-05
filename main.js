@@ -3,7 +3,7 @@ window.onload = function () {
     let texts = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"];
     let cutMode = false;
     let selectedText = null;
-    let speed = 80;
+    let speed = 200; // Increased for better visibility
     let history = []; // History array to track selections
   
     // DOM elements
@@ -18,72 +18,39 @@ window.onload = function () {
     const textInput = document.getElementById("textInput");
     const textError = document.getElementById("textError");
     const historyBtn = document.getElementById("historyBtn");
+    const settingsToggle = document.getElementById("settingsToggle");
+    const settingsMenu = document.getElementById("settingsMenu");
+    const numberError = document.getElementById("numberError");
+    const dropZoneError = document.getElementById("dropZoneError");
   
     // Set default number input value to 1
     numberInput.value = 1;
   
-    // Error message elements
-    const numberError = document.getElementById("numberError");
-    const dropZoneError = document.getElementById("dropZoneError");
-  
-    updateTextList();
-    updateModeIndicator();
-  
     // Create history modal
     createHistoryModal();
   
-    // event listeners
+    // Event listeners
     randomizeBtn.addEventListener("click", randomizeMultiple);
     cutToggle.addEventListener("click", toggleCutMode);
     addTextBtn.addEventListener("click", addText);
     historyBtn.addEventListener("click", toggleHistoryModal);
+    settingsToggle.addEventListener("click", toggleSettingsMenu);
+  
+    // Close settings menu when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!settingsMenu.contains(event.target) && 
+          !settingsToggle.contains(event.target) && 
+          settingsMenu.classList.contains('hidden') === false) {
+        toggleSettingsMenu();
+      }
+    });
+  
+    function toggleSettingsMenu() {
+      settingsMenu.classList.toggle('hidden');
+    }
   
     // Set up drag and drop for texts
     setupDropZone(dropZone, handleTextsFileLoad, dropZoneError);
-  
-    function setupDropZone(dropZone, handler, errorElement) {
-      dropZone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dropZone.classList.add("drop-zone-active");
-      });
-  
-      dropZone.addEventListener("dragleave", () => {
-        dropZone.classList.remove("drop-zone-active");
-      });
-  
-      dropZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dropZone.classList.remove("drop-zone-active");
-  
-        const file = e.dataTransfer.files[0];
-        if (!file) return;
-  
-        // Clear previous error messages
-        errorElement.textContent = "";
-  
-        const reader = new FileReader();
-        reader.onload = (e) => handler(e.target.result, errorElement);
-        reader.readAsText(file);
-      });
-    }
-  
-    function handleTextsFileLoad(fileContent, errorElement) {
-      try {
-        const data = JSON.parse(fileContent);
-  
-        if (Array.isArray(data.texts)) {
-          texts = data.texts;
-          selectedText = null;
-          updateTextList();
-          textDisplay.textContent = "Texts loaded successfully!";
-        } else {
-          throw new Error("Invalid format");
-        }
-      } catch (error) {
-        errorElement.textContent =
-          'Invalid JSON format. Please use: {"texts": ["text1", "text2", ...]}';
-      }
-    }
   
     function updateModeIndicator() {
       modeIndicator.textContent = `Current Mode: ${
@@ -101,6 +68,8 @@ window.onload = function () {
           "text-red-700",
           "border-red-300/30"
         );
+        cutToggle.classList.remove("from-green-400", "to-green-600");
+        cutToggle.classList.add("from-red-400", "to-red-600");
       } else {
         modeIndicator.classList.remove(
           "bg-red-100/15",
@@ -112,6 +81,8 @@ window.onload = function () {
           "text-green-700",
           "border-green-300/30"
         );
+        cutToggle.classList.remove("from-red-400", "to-red-600");
+        cutToggle.classList.add("from-green-400", "to-green-600");
       }
     }
   
@@ -141,47 +112,95 @@ window.onload = function () {
       let randomized = [];
       let availableTexts = [...texts]; // Make a copy to ensure no duplicates
       let i = 0;
+      let removedTexts = []; // Track removed texts if in cut mode
   
       // Clear the display at the start
       textDisplay.innerHTML = "";
   
+      function createRandomizationEffect() {
+        // Create a container for the randomization effect
+        const effectContainer = document.createElement("div");
+        effectContainer.className = "flex items-center justify-center space-x-2 mb-4";
+        
+        // Create multiple text elements for the randomization effect
+        for (let j = 0; j < 5; j++) {
+          const textElement = document.createElement("div");
+          textElement.className = "text-xl font-bold text-indigo-500 transition-all duration-200 transform";
+          textElement.textContent = availableTexts[Math.floor(Math.random() * availableTexts.length)];
+          effectContainer.appendChild(textElement);
+        }
+        
+        textDisplay.appendChild(effectContainer);
+        
+        return effectContainer;
+      }
+  
       function randomizeNext() {
         if (i < count && availableTexts.length > 0) {
+          // Remove previous randomization effect
+          const previousEffect = textDisplay.querySelector('.flex');
+          if (previousEffect) {
+            previousEffect.remove();
+          }
+  
+          // Create new randomization effect
+          const effectContainer = createRandomizationEffect();
+  
+          // Select the final text
           const randomIndex = Math.floor(Math.random() * availableTexts.length);
           const text = availableTexts[randomIndex];
           randomized.push(text);
   
-          // Create a new paragraph for each text
-          const textElement = document.createElement("div");
-          textElement.textContent = text;
-          textElement.className =
-            "py-1 text-center transform transition-all duration-300 opacity-0 scale-90";
-          textDisplay.appendChild(textElement);
-  
-          // Trigger animation
+          // Animate the selection
           setTimeout(() => {
-            textElement.classList.add("opacity-100", "scale-100");
-            textElement.classList.add("text-item-selected");
-          }, 10);
+            // Clear previous effect and show selected text
+            textDisplay.innerHTML = '';
+            const selectedTextElement = document.createElement("div");
+            selectedTextElement.textContent = text;
+            selectedTextElement.className = "text-4xl font-bold text-purple-600 transform transition-all duration-500 opacity-0 scale-75 animate-pulse";
+            
+            // Add a subtle background effect
+            const backgroundEffect = document.createElement("div");
+            backgroundEffect.className = "absolute inset-0 bg-indigo-100/50 rounded-2xl animate-ping opacity-50";
+            
+            const container = document.createElement("div");
+            container.className = "relative flex items-center justify-center h-full w-full";
+            container.appendChild(backgroundEffect);
+            container.appendChild(selectedTextElement);
+            
+            textDisplay.appendChild(container);
   
-          // Remove the text from available options to prevent duplicates
-          availableTexts.splice(randomIndex, 1);
+            // Trigger animation
+            setTimeout(() => {
+              selectedTextElement.classList.remove('opacity-0', 'scale-75');
+              selectedTextElement.classList.add('opacity-100', 'scale-100');
+            }, 50);
   
-          if (cutMode) {
-            texts = texts.filter((t) => t !== text);
-          }
+            // Remove the text from available options to prevent duplicates
+            availableTexts.splice(randomIndex, 1);
+  
+            if (cutMode) {
+              const indexToRemove = texts.indexOf(text);
+              if (indexToRemove !== -1) {
+                removedTexts.push(text);
+                texts.splice(indexToRemove, 1);
+              }
+            }
+          }, speed * 2);
   
           setTimeout(() => {
             i++;
-            setTimeout(randomizeNext, 100);
-          }, speed * 2);
+            setTimeout(randomizeNext, speed * 3);
+          }, speed * 4);
         } else {
           // Add to history
           const timestamp = new Date().toLocaleTimeString();
           history.push({
             type: count === 1 ? "single" : "multiple",
             items: randomized,
-            timestamp: timestamp
+            timestamp: timestamp,
+            cutMode: cutMode,
+            removedTexts: cutMode ? removedTexts : []
           });
           updateHistoryList();
           updateTextList();
@@ -192,6 +211,57 @@ window.onload = function () {
       randomizeNext();
     }
   
+  
+    function updateHistoryList() {
+      const historyList = document.getElementById("historyList");
+      historyList.innerHTML = "";
+  
+      // Add history items in reverse order (newest first)
+      for (let i = history.length - 1; i >= 0; i--) {
+        const item = history[i];
+        const div = document.createElement("div");
+  
+        if (item.type === "single") {
+          div.innerHTML = `
+            <span class="text-purple-500 font-medium">${item.timestamp}</span>: 
+            <span class="font-semibold">${item.items[0]}</span>
+            ${item.cutMode ? `<span class="text-red-500 text-xs ml-2">[CUT MODE]</span>` : ''}
+            ${item.cutMode && item.removedTexts.length > 0 ? 
+              `<div class="text-xs text-gray-500 ml-4">Removed: ${item.removedTexts.join(', ')}</div>` : ''}
+          `;
+        } else {
+          div.innerHTML = `
+            <span class="text-purple-500 font-medium">${item.timestamp}</span>: 
+            Multiple selection - <span class="font-semibold">${item.items.join(", ")}</span>
+            ${item.cutMode ? `<span class="text-red-500 text-xs ml-2">[CUT MODE]</span>` : ''}
+            ${item.cutMode && item.removedTexts.length > 0 ? 
+              `<div class="text-xs text-gray-500 ml-4">Removed: ${item.removedTexts.join(', ')}</div>` : ''}
+          `;
+        }
+  
+        div.className =
+          "p-3 border-b border-gray-200/50 transition-all duration-200 rounded-md hover:bg-white/80";
+        historyList.appendChild(div);
+      }
+  
+      // If no history, show message
+      if (history.length === 0) {
+        const emptyMessage = document.createElement("div");
+        emptyMessage.textContent = "No selection history yet";
+        emptyMessage.className = "p-3 text-center text-gray-500 italic";
+        historyList.appendChild(emptyMessage);
+      }
+    }
+  
+    // Mode toggle
+    function toggleCutMode() {
+      cutMode = !cutMode;
+      updateModeIndicator();
+      
+      // Close settings menu after toggling
+      toggleSettingsMenu();
+    }
+    
     function disableButtons(disabled) {
       randomizeBtn.disabled = disabled;
       cutToggle.disabled = disabled;
@@ -378,8 +448,8 @@ window.onload = function () {
         cutToggle.classList.remove("from-red-400", "to-red-600");
         cutToggle.classList.add("from-green-400", "to-green-600");
       }
-  
+      updateTextList();
       updateModeIndicator();
     }
   };
-  
+s  
