@@ -3,7 +3,7 @@ window.onload = function () {
     let texts = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"];
     let cutMode = false;
     let selectedText = null;
-    let speed = 200; // Increased for better visibility
+    let speed = 600; // Increased for better visibility
     let history = []; // History array to track selections
   
     // DOM elements
@@ -125,7 +125,7 @@ window.onload = function () {
         // Create multiple text elements for the randomization effect
         for (let j = 0; j < 5; j++) {
           const textElement = document.createElement("div");
-          textElement.className = "text-xl font-bold text-indigo-500 transition-all duration-200 transform";
+          textElement.className = "text-xl font-bold randomization-item";
           textElement.textContent = availableTexts[Math.floor(Math.random() * availableTexts.length)];
           effectContainer.appendChild(textElement);
         }
@@ -134,7 +134,7 @@ window.onload = function () {
         
         return effectContainer;
       }
-  
+      
       function randomizeNext() {
         if (i < count && availableTexts.length > 0) {
           // Remove previous randomization effect
@@ -142,43 +142,34 @@ window.onload = function () {
           if (previousEffect) {
             previousEffect.remove();
           }
-  
+      
           // Create new randomization effect
           const effectContainer = createRandomizationEffect();
-  
+      
           // Select the final text
           const randomIndex = Math.floor(Math.random() * availableTexts.length);
           const text = availableTexts[randomIndex];
           randomized.push(text);
-  
+      
           // Animate the selection
           setTimeout(() => {
             // Clear previous effect and show selected text
             textDisplay.innerHTML = '';
+            
+            // Create selection container with glow effect
+            const selectionContainer = document.createElement("div");
+            selectionContainer.className = "selection-container";
+            
             const selectedTextElement = document.createElement("div");
             selectedTextElement.textContent = text;
-            selectedTextElement.className = "text-4xl font-bold text-purple-600 transform transition-all duration-500 opacity-0 scale-75 animate-pulse";
+            selectedTextElement.className = "text-4xl font-bold selected-text";
             
-            // Add a subtle background effect
-            const backgroundEffect = document.createElement("div");
-            backgroundEffect.className = "absolute inset-0 bg-indigo-100/50 rounded-2xl animate-ping opacity-50";
-            
-            const container = document.createElement("div");
-            container.className = "relative flex items-center justify-center h-full w-full";
-            container.appendChild(backgroundEffect);
-            container.appendChild(selectedTextElement);
-            
-            textDisplay.appendChild(container);
-  
-            // Trigger animation
-            setTimeout(() => {
-              selectedTextElement.classList.remove('opacity-0', 'scale-75');
-              selectedTextElement.classList.add('opacity-100', 'scale-100');
-            }, 50);
-  
+            selectionContainer.appendChild(selectedTextElement);
+            textDisplay.appendChild(selectionContainer);
+      
             // Remove the text from available options to prevent duplicates
             availableTexts.splice(randomIndex, 1);
-  
+      
             if (cutMode) {
               const indexToRemove = texts.indexOf(text);
               if (indexToRemove !== -1) {
@@ -187,7 +178,7 @@ window.onload = function () {
               }
             }
           }, speed * 2);
-  
+      
           setTimeout(() => {
             i++;
             setTimeout(randomizeNext, speed * 3);
@@ -256,10 +247,21 @@ window.onload = function () {
     // Mode toggle
     function toggleCutMode() {
       cutMode = !cutMode;
-      updateModeIndicator();
       
-      // Close settings menu after toggling
-      toggleSettingsMenu();
+      const cutToggleBtn = document.getElementById("cutToggle");
+      
+      if (cutMode) {
+        cutToggleBtn.textContent = "🔄 Cut Mode: ON";
+        cutToggleBtn.classList.remove("from-green-400", "to-green-600");
+        cutToggleBtn.classList.add("from-red-400", "to-red-600");
+      } else {
+        cutToggleBtn.textContent = "🔄 Cut Mode: OFF";
+        cutToggleBtn.classList.remove("from-red-400", "to-red-600");
+        cutToggleBtn.classList.add("from-green-400", "to-green-600");
+      }
+      
+      updateTextList();
+      updateModeIndicator();
     }
     
     function disableButtons(disabled) {
@@ -451,5 +453,4 @@ window.onload = function () {
       updateTextList();
       updateModeIndicator();
     }
-  };
-s  
+};

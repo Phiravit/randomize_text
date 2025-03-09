@@ -1,14 +1,14 @@
-/* Drop zone styles */
+/* Drop zone styles - updated for settings panel */
 .drop-zone {
   border: 2px dashed #cbd5e1;
-  border-radius: 16px;
-  padding: 32px;
+  border-radius: 10px;
+  padding: 14px;
   text-align: center;
   transition: all 0.3s;
   background-color: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(5px);
-  margin-bottom: 24px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .drop-zone-active {
@@ -18,9 +18,9 @@
 }
 
 .format-hint {
-  font-size: 14px;
+  font-size: 12px;
   color: #6b7280;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 /* Error message styles */
@@ -66,20 +66,115 @@
   background: rgba(156, 163, 175, 0.8);
 }
 
-/* Text item animation styles */
-.text-item-selected {
-  animation: pulse 1s ease-in-out;
-}
-
-@keyframes pulse {
-  0% {
-    background-color: rgba(79, 70, 229, 0.1);
+/* Randomization animation styles with increased durations */
+@keyframes shuffle {
+  0% { 
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+  25% { 
+    transform: translateY(-15px) scale(1.1); 
+    opacity: 1;
     color: #4f46e5;
   }
-  100% {
-    background-color: transparent;
-    color: inherit;
+  50% { 
+    transform: translateY(0) scale(1);
+    opacity: 0.7; 
   }
+  75% { 
+    transform: translateY(15px) scale(0.9);
+    opacity: 0.5;
+    color: #7c3aed;
+  }
+  100% { 
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes selectionReveal {
+  0% { 
+    opacity: 0;
+    transform: scale(0.5);
+    filter: blur(10px);
+  }
+  50% { 
+    opacity: 0.7;
+    transform: scale(1.1);
+    filter: blur(5px);
+  }
+  75% { 
+    opacity: 1;
+    transform: scale(1.2);
+    filter: blur(0);
+  }
+  85% { 
+    transform: scale(0.95);
+  }
+  100% { 
+    transform: scale(1);
+  }
+}
+
+@keyframes glowPulse {
+  0% { 
+    box-shadow: 0 0 5px rgba(79, 70, 229, 0.3);
+    background-color: rgba(224, 231, 255, 0.2);
+  }
+  50% { 
+    box-shadow: 0 0 25px rgba(79, 70, 229, 0.7);
+    background-color: rgba(224, 231, 255, 0.5);
+  }
+  100% { 
+    box-shadow: 0 0 5px rgba(79, 70, 229, 0.3);
+    background-color: rgba(224, 231, 255, 0.2);
+  }
+}
+
+.randomization-item {
+  animation: shuffle 1.5s infinite; /* Increased from 0.8s to 1.5s */
+  animation-timing-function: ease-in-out;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 1.5rem; /* Increased font size for better visibility */
+}
+
+.randomization-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.randomization-item:nth-child(2) {
+  animation-delay: 0.3s; /* Increased delays for more distinct movements */
+}
+
+.randomization-item:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.randomization-item:nth-child(4) {
+  animation-delay: 0.9s;
+}
+
+.randomization-item:nth-child(5) {
+  animation-delay: 1.2s;
+}
+
+.selected-text {
+  animation: selectionReveal 1.5s ease-out forwards; /* Increased from 0.8s to 1.5s */
+  padding: 15px 25px;
+  border-radius: 12px;
+  color: #4338ca;
+  font-weight: bold;
+  position: relative;
+  z-index: 2;
+  font-size: 2.5rem; /* Larger final selection text */
+}
+
+.selection-container {
+  position: relative;
+  animation: glowPulse 3s infinite; /* Increased from 2s to 3s */
+  border-radius: 16px;
+  padding: 20px;
 }
 
 /* Text display container for vertical spacing */
@@ -90,6 +185,7 @@
   align-items: center;
   justify-content: center;
 }
+
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   opacity: 1; /* Always show the buttons */
