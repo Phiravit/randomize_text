@@ -175,6 +175,9 @@
   animation: glowPulse 3s infinite; /* Increased from 2s to 3s */
   border-radius: 16px;
   padding: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 /* Text display container for vertical spacing */
