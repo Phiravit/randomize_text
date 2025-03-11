@@ -26,9 +26,23 @@ window.onload = function () {
   const settingsToggle = document.getElementById("settingsToggle");
   const settingsModal = document.getElementById("settingsModal");
   const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+  const speedSlider = document.getElementById("speedSlider");
+  const speedValue = document.getElementById("speedValue");
 
   // Set default number input value to 1
   numberInput.value = 1;
+
+  // Initialize animation speed from slider or set default
+  if (speedSlider) {
+    speedSlider.value = speed;
+    speedValue.textContent = `${speed}ms`;
+    
+    // Add event listener for speed slider
+    speedSlider.addEventListener("input", function() {
+      speed = parseInt(this.value);
+      speedValue.textContent = `${speed}ms`;
+    });
+  }
 
   // Create history modal
   createHistoryModal();
@@ -105,7 +119,10 @@ window.onload = function () {
   function randomizeMultiple() {
     const count = parseInt(numberInput.value);
 
-    // Move the error element position to under the amount input
+    // Position error message under the amount input
+    const inputRect = numberInput.getBoundingClientRect();
+    const parentRect = numberInput.parentElement.getBoundingClientRect();
+    
     numberError.style.position = "absolute";
     numberError.style.left = "0";
     numberError.style.top = "100%";
@@ -140,7 +157,7 @@ window.onload = function () {
     // Clear the display at the start
     textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
 
-    // Simplified animation
+    // Different animation approaches based on count
     if (count <= 5) {
       // For 5 or fewer items, simply shuffle text for 2 seconds then show all results
       let shuffleCount = 0;

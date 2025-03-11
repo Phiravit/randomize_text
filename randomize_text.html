@@ -123,13 +123,41 @@
           </button>
         </div>
         <div class="p-4 flex-grow overflow-y-auto">
+          <div class="mb-6">
+            <button
+              id="historyBtn"
+              class="p-3 text-sm font-semibold rounded-lg text-blue-600 hover:text-blue-800 bg-blue-100 w-full"
+            >
+              📝 View Selection History
+            </button>
+          </div>
+          
+          <!-- Animation Settings -->
+          <div class="mb-6 border-t pt-4 mt-4">
+            <h4 class="text-lg font-semibold mb-3">Animation Settings</h4>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Animation Speed (ms)</label>
+              <div class="flex items-center gap-3">
+                <input
+                  type="range"
+                  id="speedSlider"
+                  min="200"
+                  max="15000"
+                  step="50"
+                  value="600"
+                  class="w-full"
+                />
+                <span id="speedValue" class="text-sm font-medium min-w-16 text-center">600ms</span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Lower values = faster animations</p>
+            </div>
+          </div>
+          
           <!-- Title Editor Section -->
-          <div class="">
+          <div class="mb-6 border-t pt-4 mt-4">
             <h4 class="text-lg font-semibold mb-3">Title Settings</h4>
             <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Application Title</label
-              >
+              <label class="block text-sm font-medium text-gray-700 mb-1">Application Title</label>
               <input
                 type="text"
                 id="titleInput"
@@ -144,16 +172,6 @@
               Save Title Settings
             </button>
           </div>
-          <div class="mb-6">
-            <button
-              id="historyBtn"
-              class="p-3 text-sm font-semibold rounded-lg text-blue-600 hover:text-blue-800 bg-blue-100 w-full mt-5"
-            >
-              📝 View Selection History
-            </button>
-          </div>
-
-          <!-- Additional settings can go here -->
         </div>
       </div>
     </div>
