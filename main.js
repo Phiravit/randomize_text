@@ -11,21 +11,29 @@ window.onload = function () {
   let history = []; // History array to track selections
 
   // DOM elements
+  const titleInput = document.getElementById("titleInput");
+  const saveTitleBtn = document.getElementById("saveTitleBtn");
+  const appTitle = document.getElementById("appTitle");
+  const textInput = document.getElementById("textInput");
+  const addTextBtn = document.getElementById("addTextBtn");
+  const textInputError = document.getElementById("textInputError");
   const textDisplay = document.getElementById("textDisplay");
   const numberInput = document.getElementById("numberInput");
   const randomizeBtn = document.getElementById("randomizeBtn");
   const cutToggle = document.getElementById("cutToggle");
-  const dropZone = document.getElementById("dropZone");
   const textList = document.getElementById("textList");
   const modeIndicator = document.getElementById("modeIndicator");
   const historyBtn = document.getElementById("historyBtn");
   const numberError = document.getElementById("numberError");
   const downloadHistoryBtn = document.getElementById("downloadHistoryBtn");
+  const historyModal = document.getElementById("historyModal");
+  
   
   // Settings modal elements
   const settingsToggle = document.getElementById("settingsToggle");
-  const settingsModal = document.getElementById("settingsModal");
-  const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const settingsModal = document.getElementById("settingsModal");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const speedInput = document.getElementById("speedInput");
   const speedSlider = document.getElementById("speedSlider");
   const speedValue = document.getElementById("speedValue");
 
@@ -44,10 +52,12 @@ window.onload = function () {
     });
   }
 
-  // Create history modal
-  createHistoryModal();
+  // Fix the history modal instead of creating a new one
+  fixHistoryModal();
 
   // Event listeners
+  addTextBtn.addEventListener("click", addText);
+  saveTitleBtn.addEventListener("click", saveTitle);
   randomizeBtn.addEventListener("click", randomizeMultiple);
   cutToggle.addEventListener("click", toggleCutMode);
   historyBtn.addEventListener("click", toggleHistoryModal);
@@ -116,75 +126,158 @@ window.onload = function () {
     }
   }
 
-  function randomizeMultiple() {
-    const count = parseInt(numberInput.value);
+function randomizeMultiple() {
+  const count = parseInt(numberInput.value);
 
-    // Position error message under the amount input
-    const inputRect = numberInput.getBoundingClientRect();
-    const parentRect = numberInput.parentElement.getBoundingClientRect();
+  // Position error message under the amount input
+  const inputRect = numberInput.getBoundingClientRect();
+  const parentRect = numberInput.parentElement.getBoundingClientRect();
+  
+  numberError.style.position = "absolute";
+  numberError.style.left = "0";
+  numberError.style.top = "100%";
+  numberError.style.width = "100%";
+  numberError.style.textAlign = "left";
+  
+  // Clear previous error message
+  numberError.textContent = "";
+
+  if (isNaN(count) || count < 1) {
+    numberError.textContent = "Number must be greater than 0";
+    return;
+  }
+
+  if (texts.length === 0) {
+    textDisplay.textContent = "No texts available!";
+    return;
+  }
+
+  if (texts.length < count) {
+    numberError.textContent = "Number must be lower than all text combined.";
+    return;
+  }
+
+  disableButtons(true);
+
+  let randomized = [];
+  let availableTexts = [...texts]; // Make a copy to ensure no duplicates
+  let i = 0;
+  let removedTexts = []; // Track removed texts if in cut mode
+
+  // Clear the display at the start
+  textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
+
+  // Scale shuffle time based on speed setting
+  // Faster speed (smaller number) = fewer shuffles and quicker transitions
+  const baseShuffleTime = 200;  // Base time for text changes in ms
+  const shuffleTimeAdjusted = Math.max(50, Math.min(500, baseShuffleTime * (speed / 600)));
+  const baseMaxShuffles = 10;
+  const maxShufflesAdjusted = Math.max(5, Math.min(20, baseMaxShuffles * (600 / speed) * 0.5));
+  if (count <= 5) {
+    // For 5 or fewer items, simply shuffle text then show all results
+    let shuffleCount = 0;
     
-    numberError.style.position = "absolute";
-    numberError.style.left = "0";
-    numberError.style.top = "100%";
-    numberError.style.width = "100%";
-    numberError.style.textAlign = "left";
+    function shuffleText() {
+      if (shuffleCount < maxShufflesAdjusted) {
+        // Show a random text from the available pool
+        textDisplay.innerHTML = "<div class='text-4xl font-bold'>" + 
+          availableTexts[Math.floor(Math.random() * availableTexts.length)] + 
+          "</div>";
+        
+        shuffleCount++;
+        // Use the adjusted shuffle time for the animation
+        setTimeout(shuffleText, shuffleTimeAdjusted);
+      } else {
+        // After shuffling, select the final items
+        selectFinalItems();
+      }
+    }
     
-    // Clear previous error message
-    numberError.textContent = "";
-
-    if (isNaN(count) || count < 1) {
-      numberError.textContent = "Number must be greater than 0";
-      return;
-    }
-
-    if (texts.length === 0) {
-      textDisplay.textContent = "No texts available!";
-      return;
-    }
-
-    if (texts.length < count) {
-      numberError.textContent = "Number must be lower than all text combined.";
-      return;
-    }
-
-    disableButtons(true);
-
-    let randomized = [];
-    let availableTexts = [...texts]; // Make a copy to ensure no duplicates
-    let i = 0;
-    let removedTexts = []; // Track removed texts if in cut mode
-
-    // Clear the display at the start
-    textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
-
-    // Different animation approaches based on count
-    if (count <= 5) {
-      // For 5 or fewer items, simply shuffle text for 2 seconds then show all results
-      let shuffleCount = 0;
-      const maxShuffles = 10; // Number of text changes before final selection
-      
-      function shuffleText() {
-        if (shuffleCount < maxShuffles) {
-          // Show a random text from the available pool
-          textDisplay.innerHTML = "<div class='text-4xl font-bold'>" + 
-            availableTexts[Math.floor(Math.random() * availableTexts.length)] + 
-            "</div>";
+    function selectFinalItems() {
+      // Select the required number of random items
+      for (let j = 0; j < count; j++) {
+        if (availableTexts.length > 0) {
+          const randomIndex = Math.floor(Math.random() * availableTexts.length);
+          const text = availableTexts[randomIndex];
+          randomized.push(text);
+          availableTexts.splice(randomIndex, 1);
           
-          shuffleCount++;
-          setTimeout(shuffleText, 200); // Change text every 200ms
-        } else {
-          // After 2 seconds of shuffling, select the final items
-          selectFinalItems();
+          if (cutMode) {
+            const indexToRemove = texts.indexOf(text);
+            if (indexToRemove !== -1) {
+              removedTexts.push(text);
+              texts.splice(indexToRemove, 1);
+            }
+          }
         }
       }
       
-      function selectFinalItems() {
-        // Select the required number of random items
-        for (let j = 0; j < count; j++) {
-          if (availableTexts.length > 0) {
+      // Show all results at once
+      showFinalResults(randomized);
+      
+      // Add to history
+      const timestamp = new Date().toLocaleTimeString();
+      history.push({
+        type: count === 1 ? "single" : "multiple",
+        items: randomized,
+        timestamp: timestamp,
+        cutMode: cutMode,
+        removedTexts: cutMode ? removedTexts : []
+      });
+      
+      updateHistoryList();
+      updateTextList();
+      disableButtons(false);
+    }
+    
+    // Start the shuffling animation
+    shuffleText();
+    
+  } else {
+    // For more than 5 items, select and show one at a time
+    function randomizeNext() {
+      if (i < count && availableTexts.length > 0) {
+        // Clear the display for each new selection
+        textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
+        
+        // Shuffle text for a short time
+        let shuffleCount = 0;
+        const perItemMaxShuffles = Math.max(3, Math.min(8, maxShufflesAdjusted / 2)); // Fewer shuffles for each item
+        
+        function shuffleText() {
+          if (shuffleCount < perItemMaxShuffles) {
+            // Show a random text
+            textDisplay.innerHTML = "<div class='text-4xl font-bold'>" + 
+              availableTexts[Math.floor(Math.random() * availableTexts.length)] + 
+              "</div>";
+            
+            shuffleCount++;
+            setTimeout(shuffleText, shuffleTimeAdjusted);
+          } else {
+            // Select this item
             const randomIndex = Math.floor(Math.random() * availableTexts.length);
             const text = availableTexts[randomIndex];
             randomized.push(text);
+            
+            // Show the selected item
+            const selectionContainer = document.createElement("div");
+            selectionContainer.className = "selection-container mb-2";
+            
+            const selectedTextElement = document.createElement("div");
+            selectedTextElement.textContent = text;
+            selectedTextElement.className = "text-4xl font-bold selected-text";
+            
+            selectionContainer.appendChild(selectedTextElement);
+            textDisplay.innerHTML = '';
+            textDisplay.appendChild(selectionContainer);
+            
+            // Show which number we're on
+            const counterDiv = document.createElement("div");
+            counterDiv.className = "text-sm text-gray-500 mt-2";
+            counterDiv.textContent = `Selection ${i+1} of ${count}`;
+            textDisplay.appendChild(counterDiv);
+            
+            // Remove the text from available options
             availableTexts.splice(randomIndex, 1);
             
             if (cutMode) {
@@ -194,121 +287,43 @@ window.onload = function () {
                 texts.splice(indexToRemove, 1);
               }
             }
-          }
-        }
-        
-        // Show all results at once
-        showFinalResults(randomized);
-        
-        // Add to history
-        const timestamp = new Date().toLocaleTimeString();
-        history.push({
-          type: count === 1 ? "single" : "multiple",
-          items: randomized,
-          timestamp: timestamp,
-          cutMode: cutMode,
-          removedTexts: cutMode ? removedTexts : []
-        });
-        
-        updateHistoryList();
-        updateTextList();
-        disableButtons(false);
-      }
-      
-      // Start the shuffling animation
-      shuffleText();
-      
-    } else {
-      // For more than 5 items, select and show one at a time
-      function randomizeNext() {
-        if (i < count && availableTexts.length > 0) {
-          // Clear the display for each new selection
-          textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
-          
-          // Shuffle text for a short time
-          let shuffleCount = 0;
-          const maxShuffles = 5; // Fewer shuffles for each item
-          
-          function shuffleText() {
-            if (shuffleCount < maxShuffles) {
-              // Show a random text
-              textDisplay.innerHTML = "<div class='text-4xl font-bold'>" + 
-                availableTexts[Math.floor(Math.random() * availableTexts.length)] + 
-                "</div>";
-              
-              shuffleCount++;
-              setTimeout(shuffleText, 200);
+            
+            // Move to next selection after a delay based on the speed setting
+            i++;
+            if (i < count) {
+              setTimeout(randomizeNext, speed);
             } else {
-              // Select this item
-              const randomIndex = Math.floor(Math.random() * availableTexts.length);
-              const text = availableTexts[randomIndex];
-              randomized.push(text);
-              
-              // Show the selected item
-              const selectionContainer = document.createElement("div");
-              selectionContainer.className = "selection-container mb-2";
-              
-              const selectedTextElement = document.createElement("div");
-              selectedTextElement.textContent = text;
-              selectedTextElement.className = "text-4xl font-bold selected-text";
-              
-              selectionContainer.appendChild(selectedTextElement);
-              textDisplay.innerHTML = '';
-              textDisplay.appendChild(selectionContainer);
-              
-              // Show which number we're on
-              const counterDiv = document.createElement("div");
-              counterDiv.className = "text-sm text-gray-500 mt-2";
-              counterDiv.textContent = `Selection ${i+1} of ${count}`;
-              textDisplay.appendChild(counterDiv);
-              
-              // Remove the text from available options
-              availableTexts.splice(randomIndex, 1);
-              
-              if (cutMode) {
-                const indexToRemove = texts.indexOf(text);
-                if (indexToRemove !== -1) {
-                  removedTexts.push(text);
-                  texts.splice(indexToRemove, 1);
-                }
-              }
-              
-              // Move to next selection after a delay
-              i++;
-              if (i < count) {
-                setTimeout(randomizeNext, speed);
-              } else {
-                // All selections complete - show final results
-                setTimeout(() => {
-                  showFinalResults(randomized);
-                  
-                  // Add to history
-                  const timestamp = new Date().toLocaleTimeString();
-                  history.push({
-                    type: count === 1 ? "single" : "multiple",
-                    items: randomized,
-                    timestamp: timestamp,
-                    cutMode: cutMode,
-                    removedTexts: cutMode ? removedTexts : []
-                  });
-                  
-                  updateHistoryList();
-                  updateTextList();
-                  disableButtons(false);
-                }, speed);
-              }
+              // All selections complete - show final results after the specified delay
+              setTimeout(() => {
+                showFinalResults(randomized);
+                
+                // Add to history
+                const timestamp = new Date().toLocaleTimeString();
+                history.push({
+                  type: count === 1 ? "single" : "multiple",
+                  items: randomized,
+                  timestamp: timestamp,
+                  cutMode: cutMode,
+                  removedTexts: cutMode ? removedTexts : []
+                });
+                
+                updateHistoryList();
+                updateTextList();
+                disableButtons(false);
+              }, speed / 2); // Show final results faster
             }
           }
-          
-          // Start shuffling for this item
-          shuffleText();
         }
+        
+        // Start shuffling for this item
+        shuffleText();
       }
-      
-      // Start the randomization process
-      randomizeNext();
     }
+    
+    // Start the randomization process
+    randomizeNext();
   }
+}
   
   function showFinalResults(results) {
     // Create a new results display
@@ -337,6 +352,8 @@ window.onload = function () {
 
   function updateHistoryList() {
     const historyList = document.getElementById("historyList");
+    if (!historyList) return;
+    
     historyList.innerHTML = "";
 
     // Add history items in reverse order (newest first)
@@ -439,7 +456,7 @@ window.onload = function () {
     numberInput.disabled = disabled;
   }
 
-  // updates text list
+  // Updates text list
   function updateTextList() {
     textList.innerHTML = "";
     
@@ -470,86 +487,44 @@ window.onload = function () {
     }
   }
 
-  // Create history modal
-  function createHistoryModal() {
-    // Create modal container
-    const modalContainer = document.createElement("div");
-    modalContainer.className =
-      "fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden transition-opacity duration-300";
-    modalContainer.id = "historyModal";
-
-    // Create modal content
-    const modalContent = document.createElement("div");
-    modalContent.className =
-      "bg-white rounded-xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-2xl";
-
-    // Create modal header
-    const modalHeader = document.createElement("div");
-    modalHeader.className = "p-4 border-b flex justify-between items-center";
-
-    const modalTitle = document.createElement("h3");
-    modalTitle.className = "text-xl font-bold";
-    modalTitle.textContent = "📝 Selection History";
-
-    const closeButton = document.createElement("button");
-    closeButton.className = "text-gray-500 hover:text-gray-700 text-xl";
-    closeButton.innerHTML = "&times;";
-    closeButton.onclick = toggleHistoryModal;
-
-    modalHeader.appendChild(modalTitle);
-    modalHeader.appendChild(closeButton);
-
-    // Create modal body
-    const modalBody = document.createElement("div");
-    modalBody.className = "p-4 flex-grow overflow-y-auto";
-
-    const historyList = document.createElement("div");
-    historyList.id = "historyList";
-    historyList.className = "space-y-2";
-
-    modalBody.appendChild(historyList);
-
-    // Create modal footer
-    const modalFooter = document.createElement("div");
-    modalFooter.className = "p-4 border-t";
-
-    const clearHistoryBtn = document.createElement("button");
-    clearHistoryBtn.className =
-      "p-3 text-sm font-semibold border-none rounded-lg transition-all duration-300 shadow bg-gradient-to-br from-gray-400 to-gray-600 text-white uppercase tracking-wide flex items-center justify-center gap-2 h-12 hover:translate-y-[-2px] hover:shadow-md active:translate-y-[1px] active:shadow-sm disabled:opacity-60 disabled:cursor-not-allowed w-full";
-    clearHistoryBtn.textContent = "🗑️ Clear History";
-    clearHistoryBtn.onclick = clearHistory;
-
-    modalFooter.appendChild(clearHistoryBtn);
-
-    // Assemble modal
-    modalContent.appendChild(modalHeader);
-    modalContent.appendChild(modalBody);
-    modalContent.appendChild(modalFooter);
-    modalContainer.appendChild(modalContent);
-
-    // Add modal to document
-    document.body.appendChild(modalContainer);
-
-    // Close modal when clicking outside
-    modalContainer.addEventListener("click", function (e) {
-      if (e.target === modalContainer) {
-        toggleHistoryModal();
+  // Fix history modal instead of creating it
+  function fixHistoryModal() {
+    if (historyModal) {
+      // Find the close button within the modal
+      const closeBtn = historyModal.querySelector("button");
+      if (closeBtn) {
+        // Remove the onclick attribute to prevent conflicts
+        closeBtn.removeAttribute("onclick");
+        // Add an event listener instead
+        closeBtn.addEventListener("click", toggleHistoryModal);
       }
-    });
+      
+      // Add event listener for clicking outside the modal
+      historyModal.addEventListener("click", function(e) {
+        if (e.target === historyModal) {
+          toggleHistoryModal();
+        }
+      });
+      
+      // Add event listener to the clear history button if it exists
+      const clearBtn = document.getElementById("clearHistoryBtn");
+      if (clearBtn) {
+        clearBtn.addEventListener("click", clearHistory);
+      }
+    }
   }
 
   // Toggle history modal
   function toggleHistoryModal() {
-    const modal = document.getElementById("historyModal");
-    if (modal.classList.contains("hidden")) {
-      modal.classList.remove("hidden");
+    if (historyModal.classList.contains("hidden")) {
+      historyModal.classList.remove("hidden");
       setTimeout(() => {
-        modal.classList.add("opacity-100");
+        historyModal.classList.add("opacity-100");
       }, 10);
     } else {
-      modal.classList.remove("opacity-100");
+      historyModal.classList.remove("opacity-100");
       setTimeout(() => {
-        modal.classList.add("hidden");
+        historyModal.classList.add("hidden");
       }, 300);
     }
   }
@@ -558,5 +533,67 @@ window.onload = function () {
   function clearHistory() {
     history = [];
     updateHistoryList();
+  }
+  
+  // Add text function
+  function addText() {
+    const input = textInput.value.trim();
+    
+    // Clear previous error
+    textInputError.textContent = "";
+    
+    if (!input) {
+      textInputError.textContent = "Please enter some text";
+      return;
+    }
+    
+    // Split by line breaks and filter empty lines
+    const newTexts = input.split('\n')
+      .map(text => text.trim())
+      .filter(text => text.length > 0);
+    
+    if (newTexts.length === 0) {
+      textInputError.textContent = "Please enter valid text";
+      return;
+    }
+    
+    // Add to texts array
+    texts = texts.concat(newTexts);
+    
+    // Update the text list
+    updateTextList();
+    
+    // Clear the input
+    textInput.value = "";
+    
+    // Show success message
+    textInputError.textContent = `Added ${newTexts.length} new text item(s)`;
+    textInputError.style.color = "#10b981"; // Green success color
+  }
+  
+  function saveTitle() {
+    const newTitle = titleInput.value.trim();
+    
+    if (newTitle) {
+      appTitle.innerHTML = `${newTitle}</span>`;
+      toggleSettingsModal(); // Close the settings modal after saving
+    }
+  }
+  if (speedInput) {
+    speedInput.value = speed;
+    
+    // Add event listener for speed input
+    speedInput.addEventListener("input", function() {
+      // Ensure the value is within acceptable range
+      const inputValue = parseInt(this.value);
+      if (inputValue < 200) {
+        this.value = 200;
+      } else if (inputValue > 15000) {
+        this.value = 15000;
+      }
+      
+      // Update the speed variable
+      speed = parseInt(this.value);
+    });
   }
 };
