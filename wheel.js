@@ -1,7 +1,7 @@
 // Default rewards
 const defaultRewards = [
   { name: "Candy", size: 30, color: "#FF5252" },
-  { name: "AMOGUS", size: 30, color: "#FF5252" }
+  { name: "TEST", size: 30, color: "" }
 ];
 
 // State
