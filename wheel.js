@@ -1,8 +1,5 @@
 // Default rewards
-const defaultRewards = [
-  { name: "Candy", size: 30, color: "#FF5252" },
-  { name: "TEST", size: 30, color: "" }
-];
+const defaultRewards = [];
 
 // State
 let rewards =
@@ -46,12 +43,11 @@ function init() {
 }
 
 // Create wheel segments
-
 function drawWheel() {
   wheel.innerHTML = "";
   const totalSize = rewards.reduce((sum, reward) => sum + reward.size, 0);
 
-  // Use SVG for more precise wheel creation
+  // SVGs
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("viewBox", "0 0 100 100");
