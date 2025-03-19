@@ -4,7 +4,10 @@ window.onload = function () {
 "test	2	",
 "test	3	",
 "test	4	",
-"test	5	",]
+"test	5	","test	6	",
+"test	7	",
+"test	8	",
+"test	9	",]
   let cutMode = false;
   let selectedText = null;
   let speed = 600; // Animation speed
@@ -125,68 +128,59 @@ const speedInput = document.getElementById("speedInput");
       cutToggle.classList.add("from-green-400", "to-green-600");
     }
   }
-
-function randomizeMultiple() {
-  const count = parseInt(numberInput.value);
-
-  // Position error message under the amount input
-  const inputRect = numberInput.getBoundingClientRect();
-  const parentRect = numberInput.parentElement.getBoundingClientRect();
+  function randomizeMultiple() {
+    const count = parseInt(numberInput.value);
   
-  numberError.style.position = "absolute";
-  numberError.style.left = "0";
-  numberError.style.top = "100%";
-  numberError.style.width = "100%";
-  numberError.style.textAlign = "left";
+    // Position error message under the amount input
+    const inputRect = numberInput.getBoundingClientRect();
+    const parentRect = numberInput.parentElement.getBoundingClientRect();
+    
+    numberError.style.position = "absolute";
+    numberError.style.left = "0";
+    numberError.style.top = "100%";
+    numberError.style.width = "100%";
+    numberError.style.textAlign = "left";
+    
+    // Clear previous error message
+    numberError.textContent = "";
   
-  // Clear previous error message
-  numberError.textContent = "";
-
-  if (isNaN(count) || count < 1) {
-    numberError.textContent = "Number must be greater than 0";
-    return;
-  }
-
-  if (texts.length === 0) {
-    textDisplay.textContent = "No texts available!";
-    return;
-  }
-
-  if (texts.length < count) {
-    numberError.textContent = "Number must be lower than all text combined.";
-    return;
-  }
-
-  disableButtons(true);
-
-  let randomized = [];
-  let availableTexts = [...texts]; // Make a copy to ensure no duplicates
-  let i = 0;
-  let removedTexts = []; // Track removed texts if in cut mode
-
-  // Clear the display at the start
-  textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
-
-  // Scale shuffle time based on speed setting
-  // Faster speed (smaller number) = fewer shuffles and quicker transitions
-  const baseShuffleTime = 200;  // Base time for text changes in ms
-  const shuffleTimeAdjusted = Math.max(50, Math.min(500, baseShuffleTime * (speed / 600)));
-  const baseMaxShuffles = 10;
-  const maxShufflesAdjusted = Math.max(5, Math.min(20, baseMaxShuffles * (600 / speed) * 0.5));
-  if (count <= 5) {
-    // For 5 or fewer items, simply shuffle text then show all results
+    if (isNaN(count) || count < 1) {
+      numberError.textContent = "Number must be greater than 0";
+      return;
+    }
+  
+    if (texts.length === 0) {
+      textDisplay.textContent = "No texts available!";
+      return;
+    }
+  
+    if (texts.length < count) {
+      numberError.textContent = "Number must be lower than all text combined.";
+      return;
+    }
+  
+    disableButtons(true);
+  
+    let randomized = [];
+    let availableTexts = [...texts]; // Make a copy to ensure no duplicates
+    let removedTexts = []; // Track removed texts if in cut mode
+  
+    // Clear the display at the start
+    textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
+  
+    // Simple shuffle effect then show all results at once
     let shuffleCount = 0;
+    const maxShuffles = 10;
     
     function shuffleText() {
-      if (shuffleCount < maxShufflesAdjusted) {
+      if (shuffleCount < maxShuffles) {
         // Show a random text from the available pool
         textDisplay.innerHTML = "<div class='text-4xl font-bold'>" + 
           availableTexts[Math.floor(Math.random() * availableTexts.length)] + 
           "</div>";
         
         shuffleCount++;
-        // Use the adjusted shuffle time for the animation
-        setTimeout(shuffleText, shuffleTimeAdjusted);
+        setTimeout(shuffleText, 100);
       } else {
         // After shuffling, select the final items
         selectFinalItems();
@@ -232,99 +226,8 @@ function randomizeMultiple() {
     
     // Start the shuffling animation
     shuffleText();
-    
-  } else {
-    // For more than 5 items, select and show one at a time
-    function randomizeNext() {
-      if (i < count && availableTexts.length > 0) {
-        // Clear the display for each new selection
-        textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
-        
-        // Shuffle text for a short time
-        let shuffleCount = 0;
-        const perItemMaxShuffles = Math.max(3, Math.min(8, maxShufflesAdjusted / 2)); // Fewer shuffles for each item
-        
-        function shuffleText() {
-          if (shuffleCount < perItemMaxShuffles) {
-            // Show a random text
-            textDisplay.innerHTML = "<div class='text-4xl font-bold'>" + 
-              availableTexts[Math.floor(Math.random() * availableTexts.length)] + 
-              "</div>";
-            
-            shuffleCount++;
-            setTimeout(shuffleText, shuffleTimeAdjusted);
-          } else {
-            // Select this item
-            const randomIndex = Math.floor(Math.random() * availableTexts.length);
-            const text = availableTexts[randomIndex];
-            randomized.push(text);
-            
-            // Show the selected item
-            const selectionContainer = document.createElement("div");
-            selectionContainer.className = "selection-container mb-2";
-            
-            const selectedTextElement = document.createElement("div");
-            selectedTextElement.textContent = text;
-            selectedTextElement.className = "text-4xl font-bold selected-text";
-            
-            selectionContainer.appendChild(selectedTextElement);
-            textDisplay.innerHTML = '';
-            textDisplay.appendChild(selectionContainer);
-            
-            // Show which number we're on
-            const counterDiv = document.createElement("div");
-            counterDiv.className = "text-sm text-gray-500 mt-2";
-            counterDiv.textContent = `Selection ${i+1} of ${count}`;
-            textDisplay.appendChild(counterDiv);
-            
-            // Remove the text from available options
-            availableTexts.splice(randomIndex, 1);
-            
-            if (cutMode) {
-              const indexToRemove = texts.indexOf(text);
-              if (indexToRemove !== -1) {
-                removedTexts.push(text);
-                texts.splice(indexToRemove, 1);
-              }
-            }
-            
-            // Move to next selection after a delay based on the speed setting
-            i++;
-            if (i < count) {
-              setTimeout(randomizeNext, speed);
-            } else {
-              // All selections complete - show final results after the specified delay
-              setTimeout(() => {
-                showFinalResults(randomized);
-                
-                // Add to history
-                const timestamp = new Date().toLocaleTimeString();
-                history.push({
-                  type: count === 1 ? "single" : "multiple",
-                  items: randomized,
-                  timestamp: timestamp,
-                  cutMode: cutMode,
-                  removedTexts: cutMode ? removedTexts : []
-                });
-                
-                updateHistoryList();
-                updateTextList();
-                disableButtons(false);
-              }, speed / 2); // Show final results faster
-            }
-          }
-        }
-        
-        // Start shuffling for this item
-        shuffleText();
-      }
-    }
-    
-    // Start the randomization process
-    randomizeNext();
   }
-}
-  
+    
   function showFinalResults(results) {
     // Create a new results display
     textDisplay.innerHTML = '';
@@ -349,18 +252,18 @@ function randomizeMultiple() {
     
     textDisplay.appendChild(resultContainer);
   }
-
+  
   function updateHistoryList() {
     const historyList = document.getElementById("historyList");
     if (!historyList) return;
     
     historyList.innerHTML = "";
-
+  
     // Add history items in reverse order (newest first)
     for (let i = history.length - 1; i >= 0; i--) {
       const item = history[i];
       const div = document.createElement("div");
-
+  
       if (item.type === "single") {
         div.innerHTML = `
           <span class="text-purple-500 font-medium">${item.timestamp}</span>: 
@@ -378,12 +281,12 @@ function randomizeMultiple() {
             `<div class="text-xs text-gray-500 ml-4">Removed: ${item.removedTexts.join(', ')}</div>` : ''}
         `;
       }
-
+  
       div.className =
         "p-3 border-b border-gray-200/50 transition-all duration-200 rounded-md hover:bg-white/80";
       historyList.appendChild(div);
     }
-
+  
     // If no history, show message
     if (history.length === 0) {
       const emptyMessage = document.createElement("div");
@@ -392,14 +295,14 @@ function randomizeMultiple() {
       historyList.appendChild(emptyMessage);
     }
   }
-
+  
   // Download history as CSV
   function downloadHistory() {
     if (history.length === 0) {
       alert("No history to download");
       return;
     }
-
+  
     // Create CSV content
     let csvContent = "data:text/csv;charset=utf-8,";
     
@@ -429,7 +332,7 @@ function randomizeMultiple() {
     // Clean up
     document.body.removeChild(link);
   }
-
+  
   // Mode toggle
   function toggleCutMode() {
     cutMode = !cutMode;
@@ -455,7 +358,7 @@ function randomizeMultiple() {
     cutToggle.disabled = disabled;
     numberInput.disabled = disabled;
   }
-
+  
   // Updates text list
   function updateTextList() {
     textList.innerHTML = "";
@@ -473,20 +376,20 @@ function randomizeMultiple() {
       div.textContent = text;
       div.className =
         "p-3 border-b border-gray-200/50 transition-all duration-200 rounded-md hover:bg-white/80 hover:translate-x-1";
-
+  
       if (text === selectedText && !cutMode) {
         div.classList.add("text-blue-500", "font-bold");
       }
-
+  
       textList.appendChild(div);
     });
-
+  
     // Add special style to last item
     if (textList.lastChild) {
       textList.lastChild.classList.remove("border-b");
     }
   }
-
+  
   // Fix history modal instead of creating it
   function fixHistoryModal() {
     if (historyModal) {
@@ -513,7 +416,7 @@ function randomizeMultiple() {
       }
     }
   }
-
+  
   // Toggle history modal
   function toggleHistoryModal() {
     if (historyModal.classList.contains("hidden")) {
@@ -528,7 +431,7 @@ function randomizeMultiple() {
       }, 300);
     }
   }
-
+  
   // Clear history
   function clearHistory() {
     history = [];
@@ -596,4 +499,4 @@ function randomizeMultiple() {
       speed = parseInt(this.value);
     });
   }
-};
+}
