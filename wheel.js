@@ -37,6 +37,7 @@ const rewardInputError = document.getElementById("rewardInputError");
 
 // Initialize
 function init() {
+  totalRotation = 0; 
   updateAppTitle();
   drawWheel();
   updateHistoryList();
@@ -124,6 +125,7 @@ function adjustColor(color, amount) {
       )
   );
 }
+let totalRotation = 0;
 
 function spinWheel() {
   if (isSpinning) return;
@@ -134,26 +136,19 @@ function spinWheel() {
 
   const totalSize = rewards.reduce((sum, reward) => sum + reward.size, 0);
 
-  // Extract current rotation properly
-  const computedStyle = window.getComputedStyle(wheel);
-  const matrix = computedStyle.transform;
-  let currentRotation = 0;
-
-  if (matrix !== "none") {
-    const values = matrix.split("(")[1].split(")")[0].split(",");
-    const a = values[0],
-      b = values[1];
-    currentRotation = Math.round(Math.atan2(b, a) * (180 / Math.PI));
-    if (currentRotation < 0) currentRotation += 360;
-  }
-
-  const spinAngle = Math.floor(Math.random() * 360) + 1080;
-  const newRotation = currentRotation + spinAngle;
-  let rewardIndex = determineRewardIndex(newRotation % 360);
-  wheel.style.transition = "none";
-  void wheel.offsetWidth;
+  // Calculate new spin angle (between 2-5 full rotations + random position)
+  const spinAngle = 720 + Math.floor(Math.random() * 360);
+  
+  // Add to total rotation
+  totalRotation += spinAngle;
+  
+  // Apply the total rotation
   wheel.style.transition = `transform ${spinDuration}s cubic-bezier(0.17, 0.67, 0.83, 0.67)`;
-  wheel.style.transform = `rotate(${newRotation}deg)`;
+  wheel.style.transform = `rotate(${totalRotation}deg)`;
+
+  // Determine which segment will land at the pointer
+  const finalAngle = totalRotation % 360;
+  let rewardIndex = determineRewardIndex(finalAngle);
 
   setTimeout(() => {
     const selectedReward = rewards[rewardIndex];
@@ -397,12 +392,13 @@ function setupEventListeners() {
       localStorage.removeItem("spinHistory");
       localStorage.removeItem("spinDuration");
       localStorage.removeItem("wheelTitle");
-
+  
       rewards = [...defaultRewards];
       spinHistory = [];
       spinDuration = 5;
       appTitle = "Reward Wheel Spinner";
-
+      totalRotation = 0; // Reset totalRotation
+  
       init();
     }
   });
