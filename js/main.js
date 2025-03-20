@@ -1,13 +1,6 @@
 window.onload = function () {
   // State variables
-  let texts = ["test	1	",
-"test	2	",
-"test	3	",
-"test	4	",
-"test	5	","test	6	",
-"test	7	",
-"test	8	",
-"test	9	",]
+  let texts = [];
   let cutMode = false;
   let selectedText = null;
   let speed = 600; // Animation speed
@@ -30,13 +23,12 @@ window.onload = function () {
   const numberError = document.getElementById("numberError");
   const downloadHistoryBtn = document.getElementById("downloadHistoryBtn");
   const historyModal = document.getElementById("historyModal");
-  
-  
+
   // Settings modal elements
   const settingsToggle = document.getElementById("settingsToggle");
-const settingsModal = document.getElementById("settingsModal");
-const closeSettingsBtn = document.getElementById("closeSettingsBtn");
-const speedInput = document.getElementById("speedInput");
+  const settingsModal = document.getElementById("settingsModal");
+  const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+  const speedInput = document.getElementById("speedInput");
   const speedSlider = document.getElementById("speedSlider");
   const speedValue = document.getElementById("speedValue");
 
@@ -47,9 +39,9 @@ const speedInput = document.getElementById("speedInput");
   if (speedSlider) {
     speedSlider.value = speed;
     speedValue.textContent = `${speed}ms`;
-    
+
     // Add event listener for speed slider
-    speedSlider.addEventListener("input", function() {
+    speedSlider.addEventListener("input", function () {
       speed = parseInt(this.value);
       speedValue.textContent = `${speed}ms`;
     });
@@ -65,7 +57,7 @@ const speedInput = document.getElementById("speedInput");
   cutToggle.addEventListener("click", toggleCutMode);
   historyBtn.addEventListener("click", toggleHistoryModal);
   downloadHistoryBtn.addEventListener("click", downloadHistory);
-  
+
   // Settings modal event listeners
   settingsToggle.addEventListener("click", toggleSettingsModal);
   closeSettingsBtn.addEventListener("click", toggleSettingsModal);
@@ -87,9 +79,9 @@ const speedInput = document.getElementById("speedInput");
       }, 300);
     }
   }
-  
+
   // Close settings modal when clicking outside
-  settingsModal.addEventListener("click", function(e) {
+  settingsModal.addEventListener("click", function (e) {
     if (e.target === settingsModal) {
       toggleSettingsModal();
     }
@@ -130,55 +122,56 @@ const speedInput = document.getElementById("speedInput");
   }
   function randomizeMultiple() {
     const count = parseInt(numberInput.value);
-  
+
     // Position error message under the amount input
     const inputRect = numberInput.getBoundingClientRect();
     const parentRect = numberInput.parentElement.getBoundingClientRect();
-    
+
     numberError.style.position = "absolute";
     numberError.style.left = "0";
     numberError.style.top = "100%";
     numberError.style.width = "100%";
     numberError.style.textAlign = "left";
-    
+
     // Clear previous error message
     numberError.textContent = "";
-  
+
     if (isNaN(count) || count < 1) {
       numberError.textContent = "Number must be greater than 0";
       return;
     }
-  
+
     if (texts.length === 0) {
       textDisplay.textContent = "No texts available!";
       return;
     }
-  
+
     if (texts.length < count) {
       numberError.textContent = "Number must be lower than all text combined.";
       return;
     }
-  
+
     disableButtons(true);
-  
+
     let randomized = [];
     let availableTexts = [...texts]; // Make a copy to ensure no duplicates
     let removedTexts = []; // Track removed texts if in cut mode
-  
+
     // Clear the display at the start
     textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
-  
+
     // Simple shuffle effect then show all results at once
     let shuffleCount = 0;
     const maxShuffles = 10;
-    
+
     function shuffleText() {
       if (shuffleCount < maxShuffles) {
         // Show a random text from the available pool
-        textDisplay.innerHTML = "<div class='text-4xl font-bold'>" + 
-          availableTexts[Math.floor(Math.random() * availableTexts.length)] + 
+        textDisplay.innerHTML =
+          "<div class='text-4xl font-bold'>" +
+          availableTexts[Math.floor(Math.random() * availableTexts.length)] +
           "</div>";
-        
+
         shuffleCount++;
         setTimeout(shuffleText, 100);
       } else {
@@ -186,7 +179,7 @@ const speedInput = document.getElementById("speedInput");
         selectFinalItems();
       }
     }
-    
+
     function selectFinalItems() {
       // Select the required number of random items
       for (let j = 0; j < count; j++) {
@@ -195,7 +188,7 @@ const speedInput = document.getElementById("speedInput");
           const text = availableTexts[randomIndex];
           randomized.push(text);
           availableTexts.splice(randomIndex, 1);
-          
+
           if (cutMode) {
             const indexToRemove = texts.indexOf(text);
             if (indexToRemove !== -1) {
@@ -205,10 +198,10 @@ const speedInput = document.getElementById("speedInput");
           }
         }
       }
-      
+
       // Show all results at once
       showFinalResults(randomized);
-      
+
       // Add to history
       const timestamp = new Date().toLocaleTimeString();
       history.push({
@@ -216,77 +209,98 @@ const speedInput = document.getElementById("speedInput");
         items: randomized,
         timestamp: timestamp,
         cutMode: cutMode,
-        removedTexts: cutMode ? removedTexts : []
+        removedTexts: cutMode ? removedTexts : [],
       });
-      
+
       updateHistoryList();
       updateTextList();
       disableButtons(false);
     }
-    
+
     // Start the shuffling animation
     shuffleText();
   }
-    
+
   function showFinalResults(results) {
     // Create a new results display
-    textDisplay.innerHTML = '';
-    
+    textDisplay.innerHTML = "";
+
     // Add header
     const header = document.createElement("div");
     header.className = "text-2xl font-bold mb-4 text-indigo-600";
     header.textContent = results.length > 1 ? "Final Results:" : "Result:";
     textDisplay.appendChild(header);
-    
+
     // Create result container
     const resultContainer = document.createElement("div");
     resultContainer.className = "flex flex-col items-center space-y-2 w-full";
-    
+
     // Add each result on a new line
     results.forEach((text, index) => {
       const resultItem = document.createElement("div");
-      resultItem.className = "text-3xl font-bold p-3 bg-white/80 w-full text-center rounded-lg shadow-sm";
+      resultItem.className =
+        "text-3xl font-bold p-3 bg-white/80 w-full text-center rounded-lg shadow-sm";
       resultItem.textContent = text;
       resultContainer.appendChild(resultItem);
     });
-    
+
     textDisplay.appendChild(resultContainer);
   }
-  
+
   function updateHistoryList() {
     const historyList = document.getElementById("historyList");
     if (!historyList) return;
-    
+
     historyList.innerHTML = "";
-  
+
     // Add history items in reverse order (newest first)
     for (let i = history.length - 1; i >= 0; i--) {
       const item = history[i];
       const div = document.createElement("div");
-  
+
       if (item.type === "single") {
         div.innerHTML = `
           <span class="text-purple-500 font-medium">${item.timestamp}</span>: 
           <span class="font-semibold">${item.items[0]}</span>
-          ${item.cutMode ? `<span class="text-red-500 text-xs ml-2">[CUT MODE]</span>` : ''}
-          ${item.cutMode && item.removedTexts.length > 0 ? 
-            `<div class="text-xs text-gray-500 ml-4">Removed: ${item.removedTexts.join(', ')}</div>` : ''}
+          ${
+            item.cutMode
+              ? `<span class="text-red-500 text-xs ml-2">[CUT MODE]</span>`
+              : ""
+          }
+          ${
+            item.cutMode && item.removedTexts.length > 0
+              ? `<div class="text-xs text-gray-500 ml-4">Removed: ${item.removedTexts.join(
+                  ", "
+                )}</div>`
+              : ""
+          }
         `;
       } else {
         div.innerHTML = `
           <span class="text-purple-500 font-medium">${item.timestamp}</span>: 
-          Multiple selection - <span class="font-semibold">${item.items.join(", ")}</span>
-          ${item.cutMode ? `<span class="text-red-500 text-xs ml-2">[CUT MODE]</span>` : ''}
-          ${item.cutMode && item.removedTexts.length > 0 ? 
-            `<div class="text-xs text-gray-500 ml-4">Removed: ${item.removedTexts.join(', ')}</div>` : ''}
+          Multiple selection - <span class="font-semibold">${item.items.join(
+            ", "
+          )}</span>
+          ${
+            item.cutMode
+              ? `<span class="text-red-500 text-xs ml-2">[CUT MODE]</span>`
+              : ""
+          }
+          ${
+            item.cutMode && item.removedTexts.length > 0
+              ? `<div class="text-xs text-gray-500 ml-4">Removed: ${item.removedTexts.join(
+                  ", "
+                )}</div>`
+              : ""
+          }
         `;
       }
-  
+
       div.className =
         "p-3 border-b border-gray-200/50 transition-all duration-200 rounded-md hover:bg-white/80";
       historyList.appendChild(div);
     }
-  
+
     // If no history, show message
     if (history.length === 0) {
       const emptyMessage = document.createElement("div");
@@ -295,50 +309,53 @@ const speedInput = document.getElementById("speedInput");
       historyList.appendChild(emptyMessage);
     }
   }
-  
+
   // Download history as CSV
   function downloadHistory() {
     if (history.length === 0) {
       alert("No history to download");
       return;
     }
-  
+
     // Create CSV content
     let csvContent = "data:text/csv;charset=utf-8,";
-    
+
     // Add header row
     csvContent += "Time,Type,Selection,Cut Mode\n";
-    
+
     // Add each history entry
-    history.forEach(item => {
+    history.forEach((item) => {
       const timestamp = item.timestamp;
       const type = item.type;
       const selections = item.items.join("|").replace(/,/g, ";"); // Replace commas to avoid CSV issues
       const cutModeValue = item.cutMode ? "Yes" : "No";
-      
+
       csvContent += `${timestamp},${type},"${selections}",${cutModeValue}\n`;
     });
-    
+
     // Create download link
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `randomizer_history_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute(
+      "download",
+      `randomizer_history_${new Date().toISOString().slice(0, 10)}.csv`
+    );
     document.body.appendChild(link);
-    
+
     // Trigger download
     link.click();
-    
+
     // Clean up
     document.body.removeChild(link);
   }
-  
+
   // Mode toggle
   function toggleCutMode() {
     cutMode = !cutMode;
-    
+
     const cutToggleBtn = document.getElementById("cutToggle");
-    
+
     if (cutMode) {
       cutToggleBtn.textContent = "🔄 Cut Mode: ON";
       cutToggleBtn.classList.remove("from-green-400", "to-green-600");
@@ -348,21 +365,21 @@ const speedInput = document.getElementById("speedInput");
       cutToggleBtn.classList.remove("from-red-400", "to-red-600");
       cutToggleBtn.classList.add("from-green-400", "to-green-600");
     }
-    
+
     updateTextList();
     updateModeIndicator();
   }
-  
+
   function disableButtons(disabled) {
     randomizeBtn.disabled = disabled;
     cutToggle.disabled = disabled;
     numberInput.disabled = disabled;
   }
-  
+
   // Updates text list
   function updateTextList() {
     textList.innerHTML = "";
-    
+
     if (texts.length === 0) {
       const emptyMessage = document.createElement("div");
       emptyMessage.textContent = "No texts available";
@@ -370,26 +387,26 @@ const speedInput = document.getElementById("speedInput");
       textList.appendChild(emptyMessage);
       return;
     }
-    
+
     texts.forEach((text) => {
       const div = document.createElement("div");
       div.textContent = text;
       div.className =
         "p-3 border-b border-gray-200/50 transition-all duration-200 rounded-md hover:bg-white/80 hover:translate-x-1";
-  
+
       if (text === selectedText && !cutMode) {
         div.classList.add("text-blue-500", "font-bold");
       }
-  
+
       textList.appendChild(div);
     });
-  
+
     // Add special style to last item
     if (textList.lastChild) {
       textList.lastChild.classList.remove("border-b");
     }
   }
-  
+
   // Fix history modal instead of creating it
   function fixHistoryModal() {
     if (historyModal) {
@@ -401,14 +418,14 @@ const speedInput = document.getElementById("speedInput");
         // Add an event listener instead
         closeBtn.addEventListener("click", toggleHistoryModal);
       }
-      
+
       // Add event listener for clicking outside the modal
-      historyModal.addEventListener("click", function(e) {
+      historyModal.addEventListener("click", function (e) {
         if (e.target === historyModal) {
           toggleHistoryModal();
         }
       });
-      
+
       // Add event listener to the clear history button if it exists
       const clearBtn = document.getElementById("clearHistoryBtn");
       if (clearBtn) {
@@ -416,7 +433,7 @@ const speedInput = document.getElementById("speedInput");
       }
     }
   }
-  
+
   // Toggle history modal
   function toggleHistoryModal() {
     if (historyModal.classList.contains("hidden")) {
@@ -431,52 +448,53 @@ const speedInput = document.getElementById("speedInput");
       }, 300);
     }
   }
-  
+
   // Clear history
   function clearHistory() {
     history = [];
     updateHistoryList();
   }
-  
+
   // Add text function
   function addText() {
     const input = textInput.value.trim();
-    
+
     // Clear previous error
     textInputError.textContent = "";
-    
+
     if (!input) {
       textInputError.textContent = "Please enter some text";
       return;
     }
-    
+
     // Split by line breaks and filter empty lines
-    const newTexts = input.split('\n')
-      .map(text => text.trim())
-      .filter(text => text.length > 0);
-    
+    const newTexts = input
+      .split("\n")
+      .map((text) => text.trim())
+      .filter((text) => text.length > 0);
+
     if (newTexts.length === 0) {
       textInputError.textContent = "Please enter valid text";
       return;
     }
-    
+
     // Add to texts array
     texts = texts.concat(newTexts);
-    
+
     // Update the text list
     updateTextList();
-    
+
     // Clear the input
     textInput.value = "";
-    
+
     // Show success message
     textInputError.textContent = `Added ${newTexts.length} new text item(s)`;
     textInputError.style.color = "#10b981"; // Green success color
   }
-  
+
   function saveTitle() {
     const newTitle = titleInput.value.trim();
-    
+
     if (newTitle) {
       appTitle.innerHTML = `${newTitle}</span>`;
       toggleSettingsModal(); // Close the settings modal after saving
@@ -484,9 +502,9 @@ const speedInput = document.getElementById("speedInput");
   }
   if (speedInput) {
     speedInput.value = speed;
-    
+
     // Add event listener for speed input
-    speedInput.addEventListener("input", function() {
+    speedInput.addEventListener("input", function () {
       // Ensure the value is within acceptable range
       const inputValue = parseInt(this.value);
       if (inputValue < 200) {
@@ -494,9 +512,9 @@ const speedInput = document.getElementById("speedInput");
       } else if (inputValue > 15000) {
         this.value = 15000;
       }
-      
+
       // Update the speed variable
       speed = parseInt(this.value);
     });
   }
-}
+};

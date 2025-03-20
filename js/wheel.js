@@ -478,29 +478,28 @@ backToSettingsBtn.addEventListener("click", () => {
   settingsModal.classList.remove("hidden");
 });
 
-
 function addBulkRewards() {
   const bulkInput = bulkRewardsInput.value.trim();
-  
+
   if (!bulkInput) {
     bulkRewardInputError.textContent = "Please enter rewards";
     return;
   }
-  
-  const lines = bulkInput.split('\n').filter(line => line.trim().length > 0);
-  
+
+  const lines = bulkInput.split("\n").filter((line) => line.trim().length > 0);
+
   if (lines.length === 0) {
     bulkRewardInputError.textContent = "Please enter valid rewards";
     return;
   }
-  
+
   let addedCount = 0;
-  
-  lines.forEach(line => {
-    const parts = line.split(',');
+
+  lines.forEach((line) => {
+    const parts = line.split(",");
     const name = parts[0].trim();
     const size = parseInt(parts[1]) || 1;
-    
+
     if (name) {
       rewards.push({
         name,
@@ -510,19 +509,19 @@ function addBulkRewards() {
       addedCount++;
     }
   });
-  
+
   // Save rewards to localStorage immediately
   localStorage.setItem("wheelRewards", JSON.stringify(rewards));
-  
+
   // Update UI elements
   updateRewardsList();
   drawWheel(); // Immediately redraw the wheel with new rewards
-  
+
   bulkRewardInputError.textContent = `Added ${addedCount} new rewards`;
-  
+
   // Clear the input after adding
   bulkRewardsInput.value = "";
-  
+
   // Return to settings modal after showing success message
   setTimeout(() => {
     bulkAddModal.classList.add("hidden");

@@ -68,64 +68,64 @@
 
 /* Randomization animation styles with increased durations */
 @keyframes shuffle {
-  0% { 
+  0% {
     transform: translateY(0) scale(1);
     opacity: 0.7;
   }
-  25% { 
-    transform: translateY(-15px) scale(1.1); 
+  25% {
+    transform: translateY(-15px) scale(1.1);
     opacity: 1;
     color: #4f46e5;
   }
-  50% { 
+  50% {
     transform: translateY(0) scale(1);
-    opacity: 0.7; 
+    opacity: 0.7;
   }
-  75% { 
+  75% {
     transform: translateY(15px) scale(0.9);
     opacity: 0.5;
     color: #7c3aed;
   }
-  100% { 
+  100% {
     transform: translateY(0) scale(1);
     opacity: 0.7;
   }
 }
 
 @keyframes selectionReveal {
-  0% { 
+  0% {
     opacity: 0;
     transform: scale(0.5);
     filter: blur(10px);
   }
-  50% { 
+  50% {
     opacity: 0.7;
     transform: scale(1.1);
     filter: blur(5px);
   }
-  75% { 
+  75% {
     opacity: 1;
     transform: scale(1.2);
     filter: blur(0);
   }
-  85% { 
+  85% {
     transform: scale(0.95);
   }
-  100% { 
+  100% {
     transform: scale(1);
   }
 }
 
 @keyframes glowPulse {
-  0% { 
+  0% {
     box-shadow: 0 0 5px rgba(79, 70, 229, 0.3);
     background-color: rgba(224, 231, 255, 0.2);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 25px rgba(79, 70, 229, 0.7);
     background-color: rgba(224, 231, 255, 0.5);
   }
-  100% { 
+  100% {
     box-shadow: 0 0 5px rgba(79, 70, 229, 0.3);
     background-color: rgba(224, 231, 255, 0.2);
   }

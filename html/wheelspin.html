@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Reward Wheel Spinner</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="wheel_style.css">
+    <link rel="stylesheet" href="../style/wheel_style.css" />
   </head>
 
   <body
@@ -13,7 +13,10 @@
   >
     <!-- Back to Main Menu Button -->
     <div class="w-4/5 mx-auto mb-4">
-      <a href="index.html" class="inline-block px-4 py-2 text-white bg-gray-800 rounded-lg shadow hover:bg-gray-700 transition-all duration-300 flex items-center gap-2">
+      <a
+        href="index.html"
+        class="inline-block px-4 py-2 text-white bg-gray-800 rounded-lg shadow hover:bg-gray-700 transition-all duration-300 flex items-center gap-2"
+      >
         <span>←</span> Back to Main Menu
       </a>
     </div>
@@ -76,10 +79,12 @@
             </button>
           </div>
         </div>
-        <div id="modeIndicator" class="text-center p-3 bg-green-100 text-green-700 border border-green-300 rounded-lg my-4 inline-block">
+        <div
+          id="modeIndicator"
+          class="text-center p-3 bg-green-100 text-green-700 border border-green-300 rounded-lg my-4 inline-block"
+        >
           Current Mode: Keep rewards after selection
         </div>
-        
       </div>
 
       <div
@@ -161,8 +166,7 @@
               a reward with size 25 would take up 25% of the wheel).
             </p>
 
-            <div id="rewardsList" class="space-y-3 mb-4">
-            </div>
+            <div id="rewardsList" class="space-y-3 mb-4"></div>
 
             <div class="flex gap-2 mb-4">
               <input
@@ -186,16 +190,15 @@
               </button>
             </div>
             <div id="rewardInputError" class="text-xs text-red-500 mb-2"></div>
-            
+
             <!-- Button to open bulk add modal -->
             <button
-            id="openBulkAddBtn"
-            class="px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-300 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all w-full mt-2"
-          >
-            Bulk Add Rewards
-          </button>
-          
-            
+              id="openBulkAddBtn"
+              class="px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-300 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all w-full mt-2"
+            >
+              Bulk Add Rewards
+            </button>
+
             <button
               id="saveRewardsBtn"
               class="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors w-full mt-4"
@@ -238,7 +241,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Bulk Add Modal -->
     <div
       id="bulkAddModal"
@@ -258,7 +261,8 @@
         </div>
         <div class="p-4 flex-grow overflow-y-auto">
           <p class="text-sm text-gray-600 mb-3">
-            Add multiple rewards at once. Enter one reward per line in the format: "name \t size" (tab separated).
+            Add multiple rewards at once. Enter one reward per line in the
+            format: "name \t size" (tab separated).
           </p>
           <textarea
             id="bulkRewardsInput"
@@ -267,7 +271,10 @@ Prize 2&#9;5
 Prize 3&#9;15"
             class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 min-h-[150px]"
           ></textarea>
-          <div id="bulkRewardInputError" class="text-xs text-red-500 mt-2 mb-2"></div>
+          <div
+            id="bulkRewardInputError"
+            class="text-xs text-red-500 mt-2 mb-2"
+          ></div>
           <div class="flex gap-2 mt-4">
             <button
               id="backToSettingsBtn"
@@ -286,6 +293,6 @@ Prize 3&#9;15"
       </div>
     </div>
 
-    <script src="wheel.js"></script>
+    <script src="../js/wheel.js"></script>
   </body>
 </html>
