@@ -8,7 +8,7 @@ let spinHistory = JSON.parse(localStorage.getItem("spinHistory")) || [];
 let isSpinning = false;
 let spinDuration = parseFloat(localStorage.getItem("spinDuration")) || 3;
 let appTitle = localStorage.getItem("wheelTitle") || "Reward Wheel Spinner";
-
+let cutMode = localStorage.getItem("wheelCutMode") === "true" || false;
 // DOM Elements
 const wheel = document.getElementById("wheel");
 const spinBtn = document.getElementById("spinBtn");
@@ -31,15 +31,23 @@ const resetAllBtn = document.getElementById("resetAllBtn");
 const downloadHistoryBtn = document.getElementById("downloadHistoryBtn");
 const appTitleElement = document.getElementById("appTitle");
 const rewardInputError = document.getElementById("rewardInputError");
+const cutToggle = document.getElementById("cutToggle");
+const bulkAddModal = document.getElementById("bulkAddModal");
+const openBulkAddBtn = document.getElementById("openBulkAddBtn");
+const closeBulkAddBtn = document.getElementById("closeBulkAddBtn");
+const backToSettingsBtn = document.getElementById("backToSettingsBtn");
+const bulkRewardsInput = document.getElementById("bulkRewardsInput");
+const bulkRewardInputError = document.getElementById("bulkRewardInputError");
 
 // Initialize
 function init() {
-  totalRotation = 0; 
+  totalRotation = 0;
   updateAppTitle();
   drawWheel();
   updateHistoryList();
   updateTotalWins();
   loadSettings();
+  updateModeIndicator();
 }
 
 // Create wheel segments
@@ -134,10 +142,10 @@ function spinWheel() {
 
   // Calculate new spin angle (between 2-5 full rotations + random position)
   const spinAngle = 720 + Math.floor(Math.random() * 360);
-  
+
   // Add to total rotation
   totalRotation += spinAngle;
-  
+
   // Apply the total rotation
   wheel.style.transition = `transform ${spinDuration}s cubic-bezier(0.17, 0.67, 0.83, 0.67)`;
   wheel.style.transform = `rotate(${totalRotation}deg)`;
@@ -151,6 +159,14 @@ function spinWheel() {
     prizeText.textContent = selectedReward.name;
     resultDisplay.classList.remove("hidden");
     addToHistory(selectedReward);
+
+    // Remove reward if cut mode is enabled
+    if (cutMode && rewards.length > 1) {
+      rewards.splice(rewardIndex, 1);
+      localStorage.setItem("wheelRewards", JSON.stringify(rewards));
+      drawWheel();
+    }
+
     isSpinning = false;
     spinBtn.disabled = false;
   }, spinDuration * 1000 + 100);
@@ -211,12 +227,12 @@ function updateHistoryList() {
     };
 
     historyItem.innerHTML = `
-      <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded-full" style="background-color: ${rewardObj.color}"></div>
-        <span class="font-medium">${item.reward}</span>
-      </div>
-      <span class="text-xs text-gray-500">${item.timestamp}</span>
-    `;
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full" style="background-color: ${rewardObj.color}"></div>
+          <span class="font-medium">${item.reward}</span>
+        </div>
+        <span class="text-xs text-gray-500">${item.timestamp}</span>
+      `;
 
     historyList.appendChild(historyItem);
   });
@@ -250,13 +266,13 @@ function updateRewardsList() {
       "flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200";
 
     rewardItem.innerHTML = `
-      <div class="w-6 h-6 rounded-full" style="background-color: ${reward.color}"></div>
-      <span class="flex-grow">${reward.name}</span>
-      <span class="text-sm text-gray-500">${reward.size}</span>
-      <button class="delete-reward-btn p-1 text-red-500 hover:text-red-700" data-index="${index}">
-        &times;
-      </button>
-    `;
+        <div class="w-6 h-6 rounded-full" style="background-color: ${reward.color}"></div>
+        <span class="flex-grow">${reward.name}</span>
+        <span class="text-sm text-gray-500">${reward.size}</span>
+        <button class="delete-reward-btn p-1 text-red-500 hover:text-red-700" data-index="${index}">
+          &times;
+        </button>
+      `;
 
     rewardsList.appendChild(rewardItem);
   });
@@ -306,7 +322,40 @@ function downloadHistory() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+function updateModeIndicator() {
+  const modeIndicator = document.getElementById("modeIndicator");
+  if (!modeIndicator) return;
 
+  modeIndicator.textContent = `Current Mode: ${
+    cutMode ? "Remove" : "Keep"
+  } rewards after selection`;
+
+  if (cutMode) {
+    modeIndicator.classList.remove(
+      "bg-green-100",
+      "text-green-700",
+      "border-green-300"
+    );
+    modeIndicator.classList.add("bg-red-100", "text-red-700", "border-red-300");
+    cutToggle.classList.remove("from-green-400", "to-green-600");
+    cutToggle.classList.add("from-red-400", "to-red-600");
+    cutToggle.textContent = "🔄 Cut Mode: ON";
+  } else {
+    modeIndicator.classList.remove(
+      "bg-red-100",
+      "text-red-700",
+      "border-red-300"
+    );
+    modeIndicator.classList.add(
+      "bg-green-100",
+      "text-green-700",
+      "border-green-300"
+    );
+    cutToggle.classList.remove("from-red-400", "to-red-600");
+    cutToggle.classList.add("from-green-400", "to-green-600");
+    cutToggle.textContent = "🔄 Cut Mode: OFF";
+  }
+}
 // Event listeners
 function setupEventListeners() {
   // Spin button
@@ -388,13 +437,13 @@ function setupEventListeners() {
       localStorage.removeItem("spinHistory");
       localStorage.removeItem("spinDuration");
       localStorage.removeItem("wheelTitle");
-  
+
       rewards = [...defaultRewards];
       spinHistory = [];
       spinDuration = 5;
       appTitle = "Reward Wheel Spinner";
       totalRotation = 0; // Reset totalRotation
-  
+
       init();
     }
   });
@@ -408,6 +457,94 @@ function setupEventListeners() {
       settingsModal.classList.add("hidden");
     }
   });
+  cutToggle.addEventListener("click", toggleCutMode);
+}
+
+// Open Bulk Add Modal
+openBulkAddBtn.addEventListener("click", () => {
+  settingsModal.classList.add("hidden");
+  bulkAddModal.classList.remove("hidden");
+  bulkRewardsInput.focus();
+});
+
+// Close Bulk Add Modal
+closeBulkAddBtn.addEventListener("click", () => {
+  bulkAddModal.classList.add("hidden");
+});
+
+// Back to Main Menu (Settings) Button
+backToSettingsBtn.addEventListener("click", () => {
+  bulkAddModal.classList.add("hidden");
+  settingsModal.classList.remove("hidden");
+});
+
+
+function addBulkRewards() {
+  const bulkInput = bulkRewardsInput.value.trim();
+  
+  if (!bulkInput) {
+    bulkRewardInputError.textContent = "Please enter rewards";
+    return;
+  }
+  
+  const lines = bulkInput.split('\n').filter(line => line.trim().length > 0);
+  
+  if (lines.length === 0) {
+    bulkRewardInputError.textContent = "Please enter valid rewards";
+    return;
+  }
+  
+  let addedCount = 0;
+  
+  lines.forEach(line => {
+    const parts = line.split(',');
+    const name = parts[0].trim();
+    const size = parseInt(parts[1]) || 1;
+    
+    if (name) {
+      rewards.push({
+        name,
+        size,
+        color: getRandomColor(),
+      });
+      addedCount++;
+    }
+  });
+  
+  // Save rewards to localStorage immediately
+  localStorage.setItem("wheelRewards", JSON.stringify(rewards));
+  
+  // Update UI elements
+  updateRewardsList();
+  drawWheel(); // Immediately redraw the wheel with new rewards
+  
+  bulkRewardInputError.textContent = `Added ${addedCount} new rewards`;
+  
+  // Clear the input after adding
+  bulkRewardsInput.value = "";
+  
+  // Return to settings modal after showing success message
+  setTimeout(() => {
+    bulkAddModal.classList.add("hidden");
+    settingsModal.classList.remove("hidden");
+  }, 1500);
+}
+
+// Add event listener for the Bulk Add button
+bulkAddRewardsBtn.addEventListener("click", addBulkRewards);
+
+// Close bulk add modal when clicking outside
+bulkAddModal.addEventListener("click", (e) => {
+  if (e.target === bulkAddModal) {
+    bulkAddModal.classList.add("hidden");
+  }
+});
+
+// Toggle Cut Mode function
+function toggleCutMode() {
+  cutMode = !cutMode;
+  localStorage.setItem("wheelCutMode", cutMode);
+  updateModeIndicator();
 }
 
 // Initialize when DOM is loaded
