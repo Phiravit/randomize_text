@@ -1,533 +1,650 @@
-window.onload = function () {
-  // State variables with localStorage initialization
-  let texts = JSON.parse(localStorage.getItem('randomizeTexts')) || [];
-  let cutMode = JSON.parse(localStorage.getItem('randomizeCutMode')) || false;
-  let selectedText = null;
-  let speed = parseInt(localStorage.getItem('randomizeSpeed')) || 600; // Animation speed
-  let history = JSON.parse(localStorage.getItem('randomizeHistory')) || []; // History array to track selections
+// Default rewards
+const defaultRewards = [];
 
-  // DOM elements
-  const titleInput = document.getElementById("titleInput");
-  const saveTitleBtn = document.getElementById("saveTitleBtn");
-  const appTitle = document.getElementById("appTitle");
-  const textInput = document.getElementById("textInput");
-  const addTextBtn = document.getElementById("addTextBtn");
-  const textInputError = document.getElementById("textInputError");
-  const textDisplay = document.getElementById("textDisplay");
-  const numberInput = document.getElementById("numberInput");
-  const randomizeBtn = document.getElementById("randomizeBtn");
-  const cutToggle = document.getElementById("cutToggle");
-  const textList = document.getElementById("textList");
-  const modeIndicator = document.getElementById("modeIndicator");
-  const historyBtn = document.getElementById("historyBtn");
-  const numberError = document.getElementById("numberError");
-  const downloadHistoryBtn = document.getElementById("downloadHistoryBtn");
-  const historyModal = document.getElementById("historyModal");
+// State
+let rewards =
+  JSON.parse(localStorage.getItem("wheelRewards")) || defaultRewards;
+let spinHistory = JSON.parse(localStorage.getItem("spinHistory")) || [];
+let isSpinning = false;
+let spinDuration = parseFloat(localStorage.getItem("spinDuration")) || 3;
+let appTitle = localStorage.getItem("wheelTitle") || "Reward Wheel Spinner";
+let cutMode = localStorage.getItem("wheelCutMode") === "true" || false;
+// DOM Elements
+const wheel = document.getElementById("wheel");
+const spinBtn = document.getElementById("spinBtn");
+const resultDisplay = document.getElementById("resultDisplay");
+const prizeText = document.getElementById("prizeText");
+const totalWins = document.getElementById("totalWins");
+const historyList = document.getElementById("historyList");
+const settingsToggle = document.getElementById("settingsToggle");
+const settingsModal = document.getElementById("settingsModal");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const titleInput = document.getElementById("titleInput");
+const saveTitleBtn = document.getElementById("saveTitleBtn");
+const rewardsList = document.getElementById("rewardsList");
+const newRewardName = document.getElementById("newRewardName");
+const newRewardSize = document.getElementById("newRewardSize");
+const addRewardBtn = document.getElementById("addRewardBtn");
+const saveRewardsBtn = document.getElementById("saveRewardsBtn");
+const spinDurationInput = document.getElementById("spinDurationInput");
+const resetAllBtn = document.getElementById("resetAllBtn");
+const downloadHistoryBtn = document.getElementById("downloadHistoryBtn");
+const appTitleElement = document.getElementById("appTitle");
+const rewardInputError = document.getElementById("rewardInputError");
+const cutToggle = document.getElementById("cutToggle");
+const bulkAddModal = document.getElementById("bulkAddModal");
+const openBulkAddBtn = document.getElementById("openBulkAddBtn");
+const closeBulkAddBtn = document.getElementById("closeBulkAddBtn");
+const backToSettingsBtn = document.getElementById("backToSettingsBtn");
+const bulkRewardsInput = document.getElementById("bulkRewardsInput");
+const bulkRewardInputError = document.getElementById("bulkRewardInputError");
+const bulkAddRewardsBtn = document.getElementById("bulkAddRewardsBtn");
 
-  // Settings modal elements
-  const settingsToggle = document.getElementById("settingsToggle");
-  const settingsModal = document.getElementById("settingsModal");
-  const closeSettingsBtn = document.getElementById("closeSettingsBtn");
-  const speedInput = document.getElementById("speedInput");
-  const speedSlider = document.getElementById("speedSlider");
-  const speedValue = document.getElementById("speedValue");
+// Initialize
+function init() {
+  totalRotation = 0;
+  updateAppTitle();
+  drawWheel();
+  updateHistoryList();
+  updateTotalWins();
+  loadSettings();
+  updateModeIndicator();
+  updateRemainingRewardsDisplay();
+}
 
-  // Set default number input value to 1
-  numberInput.value = 1;
+// Create wheel segments
+function drawWheel() {
+  wheel.innerHTML = "";
+  const totalSize = rewards.reduce((sum, reward) => sum + reward.size, 0);
 
-  // Initialize animation speed from localStorage or set default
-  if (speedInput) {
-    speedInput.value = speed;
+  // SVGs
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", "0 0 100 100");
+  svg.style.width = "100%";
+  svg.style.height = "100%";
+
+  // Special case: only one reward left - draw full circle
+  if (rewards.length === 1) {
+    const reward = rewards[0];
+    // Create a full circle for the single reward
+    const circle = document.createElementNS(svgNS, "circle");
+    circle.setAttribute("cx", "50");
+    circle.setAttribute("cy", "50");
+    circle.setAttribute("r", "50");
+    circle.setAttribute("fill", reward.color);
+    svg.appendChild(circle);
+
+    // Add text in the center
+    const text = document.createElementNS(svgNS, "text");
+    text.setAttribute("x", "50");
+    text.setAttribute("y", "50");
+    text.setAttribute("fill", "white");
+    text.setAttribute("font-size", "5"); // Slightly larger text for single reward
+    text.setAttribute("font-weight", "bold");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("alignment-baseline", "middle");
+    text.setAttribute("text-shadow", "0 0.2px 0.5px rgba(0,0,0,0.5)");
+    text.textContent = reward.name;
+    svg.appendChild(text);
+
+    wheel.appendChild(svg);
+    return;
   }
 
-  // Fix the history modal instead of creating a new one
-  fixHistoryModal();
+  // Original code for multiple rewards
+  let startAngle = 0;
+  rewards.forEach((reward, index) => {
+    const angle = (reward.size / totalSize) * 360;
+    const endAngle = startAngle + angle;
 
-  // Event listeners
-  addTextBtn.addEventListener("click", addText);
-  saveTitleBtn.addEventListener("click", saveTitle);
-  randomizeBtn.addEventListener("click", randomizeMultiple);
-  cutToggle.addEventListener("click", toggleCutMode);
-  historyBtn.addEventListener("click", toggleHistoryModal);
-  downloadHistoryBtn.addEventListener("click", downloadHistory);
+    // Calculate coordinates for the path
+    const startRadians = ((startAngle - 90) * Math.PI) / 180;
+    const endRadians = ((endAngle - 90) * Math.PI) / 180;
 
-  // Settings modal event listeners
-  settingsToggle.addEventListener("click", toggleSettingsModal);
-  closeSettingsBtn.addEventListener("click", toggleSettingsModal);
+    const x1 = 50 + 50 * Math.cos(startRadians);
+    const y1 = 50 + 50 * Math.sin(startRadians);
+    const x2 = 50 + 50 * Math.cos(endRadians);
+    const y2 = 50 + 50 * Math.sin(endRadians);
 
-  // Initialize text list on page load
-  updateTextList();
-  updateModeIndicator();
+    // Create path for the segment
+    const path = document.createElementNS(svgNS, "path");
+    const largeArcFlag = angle > 180 ? 1 : 0;
 
-  // Function to toggle settings modal
-  function toggleSettingsModal() {
-    if (settingsModal.classList.contains("hidden")) {
-      settingsModal.classList.remove("hidden");
-      setTimeout(() => {
-        settingsModal.classList.add("opacity-100");
-      }, 10);
-    } else {
-      settingsModal.classList.remove("opacity-100");
-      setTimeout(() => {
-        settingsModal.classList.add("hidden");
-      }, 300);
+    // Move to center, line to first point, arc to second point, close path
+    const d = `M 50,50 L ${x1},${y1} A 50,50 0 ${largeArcFlag},1 ${x2},${y2} Z`;
+    path.setAttribute("d", d);
+    path.setAttribute("fill", reward.color);
+
+    svg.appendChild(path);
+
+    // Add text
+    const textRadians = ((startAngle + angle / 2 - 90) * Math.PI) / 180;
+    const textX = 50 + 35 * Math.cos(textRadians);
+    const textY = 50 + 35 * Math.sin(textRadians);
+
+    const text = document.createElementNS(svgNS, "text");
+    text.setAttribute("x", textX);
+    text.setAttribute("y", textY);
+    text.setAttribute("fill", "white");
+    text.setAttribute("font-size", "3.5");
+    text.setAttribute("font-weight", "bold");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("alignment-baseline", "middle");
+    text.setAttribute(
+      "transform",
+      `rotate(${startAngle + angle / 2}, ${textX}, ${textY})`
+    );
+    text.setAttribute("text-shadow", "0 0.2px 0.5px rgba(0,0,0,0.5)");
+    text.textContent = reward.name;
+
+    svg.appendChild(text);
+
+    startAngle = endAngle;
+  });
+
+  wheel.appendChild(svg);
+}
+
+// Adjust color brightness
+function adjustColor(color, amount) {
+  return (
+    "#" +
+    color
+      .replace(/^#/, "")
+      .replace(/../g, (color) =>
+        (
+          "0" +
+          Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)
+        ).substr(-2)
+      )
+  );
+}
+let totalRotation = 0;
+
+function spinWheel() {
+  if (isSpinning) return;
+
+  isSpinning = true;
+  spinBtn.disabled = true;
+  resultDisplay.classList.add("hidden");
+
+  const totalSize = rewards.reduce((sum, reward) => sum + reward.size, 0);
+
+  // Calculate new spin angle (between 2-5 full rotations + random position)
+  const spinAngle = 720 + Math.floor(Math.random() * 360);
+
+  // Add to total rotation
+  totalRotation += spinAngle;
+
+  // Apply the total rotation
+  wheel.style.transition = `transform ${spinDuration}s cubic-bezier(0.17, 0.67, 0.83, 0.67)`;
+  wheel.style.transform = `rotate(${totalRotation}deg)`;
+
+  // Determine which segment will land at the pointer
+  const finalAngle = totalRotation % 360;
+  let rewardIndex = determineRewardIndex(finalAngle);
+
+  setTimeout(() => {
+    const selectedReward = rewards[rewardIndex];
+    prizeText.textContent = selectedReward.name;
+    resultDisplay.classList.remove("hidden");
+    addToHistory(selectedReward);
+
+    // Modify reward size if cut mode is enabled
+    if (cutMode) {
+      // Decrease the size by 1
+      rewards[rewardIndex].size -= 1;
+
+      // If size reaches 0, remove the reward
+      if (rewards[rewardIndex].size <= 0) {
+        rewards.splice(rewardIndex, 1);
+      }
+
+      // Save updated rewards to localStorage
+      localStorage.setItem("wheelRewards", JSON.stringify(rewards));
+      drawWheel();
+
+      // Update the remaining rewards display
+      updateRemainingRewardsDisplay();
+      // Update rewards list in settings modal
+      updateRewardsList();
+    }
+
+    isSpinning = false;
+    spinBtn.disabled = false;
+  }, spinDuration * 1000 + 100);
+}
+
+// Determine which reward index lands at the pointer
+function determineRewardIndex(angle) {
+  // If there's only one reward, always return index 0
+  if (rewards.length === 1) {
+    return 0;
+  }
+
+  const totalSize = rewards.reduce((sum, reward) => sum + reward.size, 0);
+  const normalizedAngle = 360 - angle; // Reverse direction
+
+  let accumulatedSize = 0;
+  for (let i = 0; i < rewards.length; i++) {
+    accumulatedSize += rewards[i].size;
+    const currentAngle = (accumulatedSize / totalSize) * 360;
+    if (normalizedAngle <= currentAngle) {
+      return i;
     }
   }
+  return 0;
+}
 
-  // Close settings modal when clicking outside
-  settingsModal.addEventListener("click", function (e) {
-    if (e.target === settingsModal) {
-      toggleSettingsModal();
+// Add reward to history
+function addToHistory(reward) {
+  const timestamp = new Date().toLocaleString();
+  spinHistory.unshift({ reward: reward.name, timestamp });
+
+  // Limit history size
+  if (spinHistory.length > 50) {
+    spinHistory.pop();
+  }
+
+  // Save to localStorage
+  localStorage.setItem("spinHistory", JSON.stringify(spinHistory));
+
+  // Update UI
+  updateHistoryList();
+  updateTotalWins();
+}
+
+// Update history list in UI
+function updateHistoryList() {
+  historyList.innerHTML = "";
+
+  if (spinHistory.length === 0) {
+    historyList.innerHTML =
+      '<div class="text-gray-500 text-center py-4">No spins yet</div>';
+    return;
+  }
+
+  spinHistory.forEach((item, index) => {
+    const historyItem = document.createElement("div");
+    historyItem.className =
+      "p-2 bg-white rounded-lg shadow-sm flex justify-between items-center";
+
+    const rewardObj = rewards.find((r) => r.name === item.reward) || {
+      name: item.reward,
+      color: "#888888",
+    };
+
+    historyItem.innerHTML = `
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-full" style="background-color: ${rewardObj.color}"></div>
+            <span class="font-medium">${item.reward}</span>
+          </div>
+          <span class="text-xs text-gray-500">${item.timestamp}</span>
+        `;
+
+    historyList.appendChild(historyItem);
+  });
+}
+
+// Update total wins counter
+function updateTotalWins() {
+  totalWins.textContent = `Total spins: ${spinHistory.length}`;
+}
+
+// Update app title
+function updateAppTitle() {
+  appTitleElement.innerHTML = `<span class="text-white">🎁</span> ${appTitle} <span class="text-white">🎁</span>`;
+  document.title = appTitle;
+}
+
+// Load settings
+function loadSettings() {
+  titleInput.value = appTitle;
+  spinDurationInput.value = spinDuration;
+  updateRewardsList();
+}
+
+// Update rewards list in settings
+function updateRewardsList() {
+  rewardsList.innerHTML = "";
+
+  rewards.forEach((reward, index) => {
+    const rewardItem = document.createElement("div");
+    rewardItem.className =
+      "flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200";
+
+    rewardItem.innerHTML = `
+          <div class="w-6 h-6 rounded-full" style="background-color: ${reward.color}"></div>
+          <span class="flex-grow">${reward.name}</span>
+          <span class="text-sm text-gray-500">${reward.size}</span>
+          <button class="delete-reward-btn p-1 text-red-500 hover:text-red-700" data-index="${index}">
+            &times;
+          </button>
+        `;
+
+    rewardsList.appendChild(rewardItem);
+  });
+
+  // Add event listeners to delete buttons
+  document.querySelectorAll(".delete-reward-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const index = parseInt(this.dataset.index);
+      rewards.splice(index, 1);
+      updateRewardsList();
+    });
+  });
+}
+
+// Create a new function to update the remaining rewards display
+function updateRemainingRewardsDisplay() {
+  const remainingRewardsDisplay = document.getElementById(
+    "remainingRewardsDisplay"
+  );
+
+  if (!remainingRewardsDisplay) return;
+
+  remainingRewardsDisplay.innerHTML = "";
+
+  // Create header
+  const header = document.createElement("h3");
+  header.className = "text-lg font-semibold mb-2 text-center";
+  header.textContent = "Remaining Rewards";
+  remainingRewardsDisplay.appendChild(header);
+
+  // Create rewards list
+  const rewardsList = document.createElement("div");
+  rewardsList.className = "space-y-1 max-h-[300px] overflow-y-auto pr-2";
+
+  rewards.forEach((reward) => {
+    const rewardItem = document.createElement("div");
+    rewardItem.className =
+      "flex items-center justify-between p-2 bg-white/80 rounded-lg shadow-sm";
+
+    rewardItem.innerHTML = `
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full" style="background-color: ${reward.color}"></div>
+          <span class="font-medium">${reward.name}</span>
+        </div>
+        <span class="text-sm font-bold px-2 py-1 bg-gray-100 rounded-full">${reward.size}x</span>
+      `;
+
+    rewardsList.appendChild(rewardItem);
+  });
+
+  remainingRewardsDisplay.appendChild(rewardsList);
+}
+
+// Generate a random color
+function getRandomColor() {
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+// Download history
+function downloadHistory() {
+  if (spinHistory.length === 0) {
+    alert("No spin history to download.");
+    return;
+  }
+
+  let csv = "Prize,Timestamp\n";
+  spinHistory.forEach((item) => {
+    csv += `"${item.reward}","${item.timestamp}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `wheel-spin-history-${new Date()
+    .toLocaleDateString()
+    .replace(/\//g, "-")}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function updateModeIndicator() {
+  const modeIndicator = document.getElementById("modeIndicator");
+  if (!modeIndicator) return;
+
+  modeIndicator.textContent = `Current Mode: ${
+    cutMode ? "Remove" : "Keep"
+  } rewards after selection`;
+
+  if (cutMode) {
+    modeIndicator.classList.remove(
+      "bg-green-100",
+      "text-green-700",
+      "border-green-300"
+    );
+    modeIndicator.classList.add("bg-red-100", "text-red-700", "border-red-300");
+    cutToggle.classList.remove("from-green-400", "to-green-600");
+    cutToggle.classList.add("from-red-400", "to-red-600");
+    cutToggle.textContent = "🔄 Cut Mode: ON";
+  } else {
+    modeIndicator.classList.remove(
+      "bg-red-100",
+      "text-red-700",
+      "border-red-300"
+    );
+    modeIndicator.classList.add(
+      "bg-green-100",
+      "text-green-700",
+      "border-green-300"
+    );
+    cutToggle.classList.remove("from-red-400", "to-red-600");
+    cutToggle.classList.add("from-green-400", "to-green-600");
+    cutToggle.textContent = "🔄 Cut Mode: OFF";
+  }
+}
+
+// Event listeners
+function setupEventListeners() {
+  // Spin button
+  spinBtn.addEventListener("click", spinWheel);
+
+  // Settings toggle
+  settingsToggle.addEventListener("click", () => {
+    // Update rewards list in settings before showing modal
+    updateRewardsList();
+    settingsModal.classList.remove("hidden");
+  });
+
+  // Close settings
+  closeSettingsBtn.addEventListener("click", () => {
+    settingsModal.classList.add("hidden");
+  });
+
+  // Save title
+  saveTitleBtn.addEventListener("click", () => {
+    appTitle = titleInput.value.trim() || "Reward Wheel Spinner";
+    localStorage.setItem("wheelTitle", appTitle);
+    updateAppTitle();
+  });
+
+  // Add reward
+  addRewardBtn.addEventListener("click", () => {
+    const name = newRewardName.value.trim();
+    const size = parseInt(newRewardSize.value);
+
+    if (!name) {
+      rewardInputError.textContent = "Please enter a reward name";
+      return;
+    }
+
+    if (isNaN(size) || size <= 0) {
+      rewardInputError.textContent = "Size must be a positive number";
+      return;
+    }
+
+    rewardInputError.textContent = "";
+    rewards.push({
+      name,
+      size,
+      color: getRandomColor(),
+    });
+
+    newRewardName.value = "";
+    newRewardSize.value = "";
+    updateRewardsList();
+  });
+
+  // Save rewards
+  saveRewardsBtn.addEventListener("click", () => {
+    if (rewards.length === 0) {
+      rewardInputError.textContent = "You must have at least one reward";
+      return;
+    }
+  
+    localStorage.setItem("wheelRewards", JSON.stringify(rewards));
+    drawWheel();
+    updateRemainingRewardsDisplay(); // Add this line
+    settingsModal.classList.add("hidden");
+  });
+
+  // Spin duration
+  spinDurationInput.addEventListener("change", () => {
+    const duration = parseFloat(spinDurationInput.value);
+    if (!isNaN(duration) && duration >= 1 && duration <= 10) {
+      spinDuration = duration;
+      localStorage.setItem("spinDuration", spinDuration);
     }
   });
 
-  function updateModeIndicator() {
-    modeIndicator.textContent = `Current Mode: ${
-      cutMode ? "Remove" : "Keep"
-    } texts after selection`;
+  // Reset all
+  resetAllBtn.addEventListener("click", () => {
+    if (
+      confirm(
+        "Are you sure you want to reset all data? This will clear all rewards and history."
+      )
+    ) {
+      localStorage.removeItem("wheelRewards");
+      localStorage.removeItem("spinHistory");
+      localStorage.removeItem("spinDuration");
+      localStorage.removeItem("wheelTitle");
+      localStorage.removeItem("wheelCutMode");
 
-    if (cutMode) {
-      modeIndicator.classList.remove(
-        "bg-green-100/15",
-        "text-green-700",
-        "border-green-300/30"
-      );
-      modeIndicator.classList.add(
-        "bg-red-100/15",
-        "text-red-700",
-        "border-red-300/30"
-      );
-      cutToggle.classList.remove("from-green-400", "to-green-600");
-      cutToggle.classList.add("from-red-400", "to-red-600");
-    } else {
-      modeIndicator.classList.remove(
-        "bg-red-100/15",
-        "text-red-700",
-        "border-red-300/30"
-      );
-      modeIndicator.classList.add(
-        "bg-green-100/15",
-        "text-green-700",
-        "border-green-300/30"
-      );
-      cutToggle.classList.remove("from-red-400", "to-red-600");
-      cutToggle.classList.add("from-green-400", "to-green-600");
+      rewards = [...defaultRewards];
+      spinHistory = [];
+      spinDuration = 3;
+      appTitle = "Reward Wheel Spinner";
+      cutMode = false;
+      totalRotation = 0; // Reset totalRotation
+
+      init();
     }
+  });
+
+  // Download history
+  downloadHistoryBtn.addEventListener("click", downloadHistory);
+
+  // Close settings when clicking outside
+  settingsModal.addEventListener("click", (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.classList.add("hidden");
+    }
+  });
+  cutToggle.addEventListener("click", toggleCutMode);
+}
+
+// Open Bulk Add Modal
+openBulkAddBtn.addEventListener("click", () => {
+  settingsModal.classList.add("hidden");
+  bulkAddModal.classList.remove("hidden");
+  bulkRewardsInput.focus();
+});
+
+// Close Bulk Add Modal
+closeBulkAddBtn.addEventListener("click", () => {
+  bulkAddModal.classList.add("hidden");
+});
+
+// Back to Main Menu (Settings) Button
+backToSettingsBtn.addEventListener("click", () => {
+  bulkAddModal.classList.add("hidden");
+  settingsModal.classList.remove("hidden");
+});
+
+function addBulkRewards() {
+  const bulkInput = bulkRewardsInput.value.trim();
+
+  if (!bulkInput) {
+    bulkRewardInputError.textContent = "Please enter rewards";
+    return;
   }
 
-  function randomizeMultiple() {
-    const count = parseInt(numberInput.value);
+  const lines = bulkInput.split("\n").filter((line) => line.trim().length > 0);
 
-    // Position error message under the amount input
-    const inputRect = numberInput.getBoundingClientRect();
-    const parentRect = numberInput.parentElement.getBoundingClientRect();
+  if (lines.length === 0) {
+    bulkRewardInputError.textContent = "Please enter valid rewards";
+    return;
+  }
 
-    numberError.style.position = "absolute";
-    numberError.style.left = "0";
-    numberError.style.top = "100%";
-    numberError.style.width = "100%";
-    numberError.style.textAlign = "left";
+  let addedCount = 0;
 
-    // Clear previous error message
-    numberError.textContent = "";
+  lines.forEach((line) => {
+    // Split by comma to extract name and size
+    const parts = line.split(",");
+    const name = parts[0].trim();
+    // Parse size from the second part, defaulting to 1 if not provided or invalid
+    const size = parts.length > 1 ? parseInt(parts[1].trim()) : 1;
 
-    if (isNaN(count) || count < 1) {
-      numberError.textContent = "Number must be greater than 0";
-      return;
-    }
-
-    if (texts.length === 0) {
-      textDisplay.textContent = "No texts available!";
-      return;
-    }
-
-    if (texts.length < count) {
-      numberError.textContent = "Number must be lower than all text combined.";
-      return;
-    }
-
-    disableButtons(true);
-
-    let randomized = [];
-    let availableTexts = [...texts]; // Make a copy to ensure no duplicates
-    let removedTexts = []; // Track removed texts if in cut mode
-
-    // Clear the display at the start
-    textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
-
-    // Simple shuffle effect then show all results at once
-    let shuffleCount = 0;
-    const maxShuffles = 10;
-
-    function shuffleText() {
-      if (shuffleCount < maxShuffles) {
-        // Show a random text from the available pool
-        textDisplay.innerHTML =
-          "<div class='text-4xl font-bold'>" +
-          availableTexts[Math.floor(Math.random() * availableTexts.length)] +
-          "</div>";
-
-        shuffleCount++;
-        setTimeout(shuffleText, 100);
-      } else {
-        // After shuffling, select the final items
-        selectFinalItems();
-      }
-    }
-
-    function selectFinalItems() {
-      // Select the required number of random items
-      for (let j = 0; j < count; j++) {
-        if (availableTexts.length > 0) {
-          const randomIndex = Math.floor(Math.random() * availableTexts.length);
-          const text = availableTexts[randomIndex];
-          randomized.push(text);
-          availableTexts.splice(randomIndex, 1);
-
-          if (cutMode) {
-            const indexToRemove = texts.indexOf(text);
-            if (indexToRemove !== -1) {
-              removedTexts.push(text);
-              texts.splice(indexToRemove, 1);
-            }
-          }
-        }
-      }
-
-      // Show all results at once
-      showFinalResults(randomized);
-
-      // Add to history
-      const timestamp = new Date().toLocaleTimeString();
-      history.push({
-        type: count === 1 ? "single" : "multiple",
-        items: randomized,
-        timestamp: timestamp,
-        cutMode: cutMode,
-        removedTexts: cutMode ? removedTexts : [],
+    if (name) {
+      rewards.push({
+        name,
+        size: isNaN(size) ? 1 : size,
+        color: getRandomColor(),
       });
-
-      // Save to localStorage
-      localStorage.setItem('randomizeTexts', JSON.stringify(texts));
-      localStorage.setItem('randomizeHistory', JSON.stringify(history));
-
-      updateHistoryList();
-      updateTextList();
-      disableButtons(false);
+      addedCount++;
     }
+  });
 
-    // Start the shuffling animation
-    shuffleText();
+  // Save rewards to localStorage immediately
+  localStorage.setItem("wheelRewards", JSON.stringify(rewards));
+
+  // Update UI elements
+  updateRewardsList();
+  updateRemainingRewardsDisplay();
+  drawWheel();
+
+  bulkRewardInputError.textContent = `Added ${addedCount} new rewards`;
+
+  // Clear the input after adding
+  bulkRewardsInput.value = "";
+
+  // Return to settings modal after showing success message
+  setTimeout(() => {
+    bulkAddModal.classList.add("hidden");
+    settingsModal.classList.remove("hidden");
+  }, 1500);
+}
+// Add event listener for the Bulk Add button
+bulkAddRewardsBtn.addEventListener("click", addBulkRewards);
+
+// Close bulk add modal when clicking outside
+bulkAddModal.addEventListener("click", (e) => {
+  if (e.target === bulkAddModal) {
+    bulkAddModal.classList.add("hidden");
   }
+});
 
-  function showFinalResults(results) {
-    // Create a new results display
-    textDisplay.innerHTML = "";
+// Toggle Cut Mode function
+function toggleCutMode() {
+  cutMode = !cutMode;
+  localStorage.setItem("wheelCutMode", cutMode);
+  updateModeIndicator();
+}
 
-    // Add header
-    const header = document.createElement("div");
-    header.className = "text-2xl font-bold mb-4 text-indigo-600";
-    header.textContent = results.length > 1 ? "Final Results:" : "Result:";
-    textDisplay.appendChild(header);
-
-    // Create result container
-    const resultContainer = document.createElement("div");
-    resultContainer.className = "flex flex-col items-center space-y-2 w-full";
-
-    // Add each result on a new line
-    results.forEach((text, index) => {
-      const resultItem = document.createElement("div");
-      resultItem.className =
-        "text-3xl font-bold p-3 bg-white/80 w-full text-center rounded-lg shadow-sm";
-      resultItem.textContent = text;
-      resultContainer.appendChild(resultItem);
-    });
-
-    textDisplay.appendChild(resultContainer);
-  }
-
-  function updateHistoryList() {
-    const historyList = document.getElementById("historyList");
-    if (!historyList) return;
-
-    historyList.innerHTML = "";
-
-    // Add history items in reverse order (newest first)
-    for (let i = history.length - 1; i >= 0; i--) {
-      const item = history[i];
-      const div = document.createElement("div");
-
-      if (item.type === "single") {
-        div.innerHTML = `
-          <span class="text-purple-500 font-medium">${item.timestamp}</span>: 
-          <span class="font-semibold">${item.items[0]}</span>
-          ${
-            item.cutMode
-              ? `<span class="text-red-500 text-xs ml-2">[CUT MODE]</span>`
-              : ""
-          }
-          ${
-            item.cutMode && item.removedTexts.length > 0
-              ? `<div class="text-xs text-gray-500 ml-4">Removed: ${item.removedTexts.join(
-                  ", "
-                )}</div>`
-              : ""
-          }
-        `;
-      } else {
-        div.innerHTML = `
-          <span class="text-purple-500 font-medium">${item.timestamp}</span>: 
-          Multiple selection - <span class="font-semibold">${item.items.join(
-            ", "
-          )}</span>
-          ${
-            item.cutMode
-              ? `<span class="text-red-500 text-xs ml-2">[CUT MODE]</span>`
-              : ""
-          }
-          ${
-            item.cutMode && item.removedTexts.length > 0
-              ? `<div class="text-xs text-gray-500 ml-4">Removed: ${item.removedTexts.join(
-                  ", "
-                )}</div>`
-              : ""
-          }
-        `;
-      }
-
-      div.className =
-        "p-3 border-b border-gray-200/50 transition-all duration-200 rounded-md hover:bg-white/80";
-      historyList.appendChild(div);
-    }
-
-    // If no history, show message
-    if (history.length === 0) {
-      const emptyMessage = document.createElement("div");
-      emptyMessage.textContent = "No selection history yet";
-      emptyMessage.className = "p-3 text-center text-gray-500 italic";
-      historyList.appendChild(emptyMessage);
-    }
-
-    // Save history to localStorage
-    localStorage.setItem('randomizeHistory', JSON.stringify(history));
-  }
-
-  // Download history as CSV
-  function downloadHistory() {
-    if (history.length === 0) {
-      alert("No history to download");
-      return;
-    }
-
-    // Create CSV content
-    let csvContent = "data:text/csv;charset=utf-8,";
-
-    // Add header row
-    csvContent += "Time,Type,Selection,Cut Mode\n";
-
-    // Add each history entry
-    history.forEach((item) => {
-      const timestamp = item.timestamp;
-      const type = item.type;
-      const selections = item.items.join("|").replace(/,/g, ";"); // Replace commas to avoid CSV issues
-      const cutModeValue = item.cutMode ? "Yes" : "No";
-
-      csvContent += `${timestamp},${type},"${selections}",${cutModeValue}\n`;
-    });
-
-    // Create download link
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `randomizer_history_${new Date().toISOString().slice(0, 10)}.csv`
-    );
-    document.body.appendChild(link);
-
-    // Trigger download
-    link.click();
-
-    // Clean up
-    document.body.removeChild(link);
-  }
-
-  // Mode toggle
-  function toggleCutMode() {
-    cutMode = !cutMode;
-
-    const cutToggleBtn = document.getElementById("cutToggle");
-
-    if (cutMode) {
-      cutToggleBtn.textContent = "🔄 Cut Mode: ON";
-      cutToggleBtn.classList.remove("from-green-400", "to-green-600");
-      cutToggleBtn.classList.add("from-red-400", "to-red-600");
-    } else {
-      cutToggleBtn.textContent = "🔄 Cut Mode: OFF";
-      cutToggleBtn.classList.remove("from-red-400", "to-red-600");
-      cutToggleBtn.classList.add("from-green-400", "to-green-600");
-    }
-
-    // Save cut mode to localStorage
-    localStorage.setItem('randomizeCutMode', JSON.stringify(cutMode));
-
-    updateTextList();
-    updateModeIndicator();
-  }
-
-  function disableButtons(disabled) {
-    randomizeBtn.disabled = disabled;
-    cutToggle.disabled = disabled;
-    numberInput.disabled = disabled;
-  }
-
-  // Updates text list
-  function updateTextList() {
-    textList.innerHTML = "";
-
-    if (texts.length === 0) {
-      const emptyMessage = document.createElement("div");
-      emptyMessage.textContent = "No texts available";
-      emptyMessage.className = "p-3 text-center text-gray-500 italic";
-      textList.appendChild(emptyMessage);
-      return;
-    }
-
-    texts.forEach((text) => {
-      const div = document.createElement("div");
-      div.textContent = text;
-      div.className =
-        "p-3 border-b border-gray-200/50 transition-all duration-200 rounded-md hover:bg-white/80 hover:translate-x-1";
-
-      if (text === selectedText && !cutMode) {
-        div.classList.add("text-blue-500", "font-bold");
-      }
-
-      textList.appendChild(div);
-    });
-
-    // Add special style to last item
-    if (textList.lastChild) {
-      textList.lastChild.classList.remove("border-b");
-    }
-  }
-
-  // Fix history modal instead of creating it
-  function fixHistoryModal() {
-    if (historyModal) {
-      // Find the close button within the modal
-      const closeBtn = historyModal.querySelector("button");
-      if (closeBtn) {
-        // Remove the onclick attribute to prevent conflicts
-        closeBtn.removeAttribute("onclick");
-        // Add an event listener instead
-        closeBtn.addEventListener("click", toggleHistoryModal);
-      }
-
-      // Add event listener for clicking outside the modal
-      historyModal.addEventListener("click", function (e) {
-        if (e.target === historyModal) {
-          toggleHistoryModal();
-        }
-      });
-
-      // Add event listener to the clear history button if it exists
-      const clearBtn = document.getElementById("clearHistoryBtn");
-      if (clearBtn) {
-        clearBtn.addEventListener("click", clearHistory);
-      }
-    }
-  }
-
-  // Toggle history modal
-  function toggleHistoryModal() {
-    if (historyModal.classList.contains("hidden")) {
-      historyModal.classList.remove("hidden");
-      setTimeout(() => {
-        historyModal.classList.add("opacity-100");
-      }, 10);
-    } else {
-      historyModal.classList.remove("opacity-100");
-      setTimeout(() => {
-        historyModal.classList.add("hidden");
-      }, 300);
-    }
-  }
-
-  // Clear history
-  function clearHistory() {
-    history = [];
-    updateHistoryList();
-    localStorage.removeItem('randomizeHistory');
-  }
-
-  // Add text function
-  function addText() {
-    const input = textInput.value.trim();
-
-    // Clear previous error
-    textInputError.textContent = "";
-
-    if (!input) {
-      textInputError.textContent = "Please enter some text";
-      return;
-    }
-
-    // Split by line breaks and filter empty lines
-    const newTexts = input
-      .split("\n")
-      .map((text) => text.trim())
-      .filter((text) => text.length > 0);
-
-    if (newTexts.length === 0) {
-      textInputError.textContent = "Please enter valid text";
-      return;
-    }
-
-    // Add to texts array
-    texts = texts.concat(newTexts);
-
-    // Save to localStorage
-    localStorage.setItem('randomizeTexts', JSON.stringify(texts));
-
-    // Update the text list
-    updateTextList();
-
-    // Clear the input
-    textInput.value = "";
-
-    // Show success message
-    textInputError.textContent = `Added ${newTexts.length} new text item(s)`;
-    textInputError.style.color = "#10b981"; // Green success color
-  }
-
-  function saveTitle() {
-    const newTitle = titleInput.value.trim();
-
-    if (newTitle) {
-      appTitle.innerHTML = `${newTitle}</span>`;
-      toggleSettingsModal(); // Close the settings modal after saving
-    }
-  }
-
-  if (speedInput) {
-    speedInput.value = speed;
-
-    // Add event listener for speed input
-    speedInput.addEventListener("input", function () {
-      // Ensure the value is within acceptable range
-      const inputValue = parseInt(this.value);
-      if (inputValue < 200) {
-        this.value = 200;
-      } else if (inputValue > 15000) {
-        this.value = 15000;
-      }
-
-      // Update the speed variable
-      speed = parseInt(this.value);
-
-      // Save to localStorage
-      localStorage.setItem('randomizeSpeed', speed);
-    });
-  }
-};
+// Initialize when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  init();
+  setupEventListeners();
+});
