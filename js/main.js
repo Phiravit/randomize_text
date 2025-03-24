@@ -1,10 +1,10 @@
 window.onload = function () {
-  // State variables
-  let texts = [];
-  let cutMode = false;
+  // State variables with localStorage initialization
+  let texts = JSON.parse(localStorage.getItem('randomizeTexts')) || [];
+  let cutMode = JSON.parse(localStorage.getItem('randomizeCutMode')) || false;
   let selectedText = null;
-  let speed = 600; // Animation speed
-  let history = []; // History array to track selections
+  let speed = parseInt(localStorage.getItem('randomizeSpeed')) || 600; // Animation speed
+  let history = JSON.parse(localStorage.getItem('randomizeHistory')) || []; // History array to track selections
 
   // DOM elements
   const titleInput = document.getElementById("titleInput");
@@ -35,16 +35,9 @@ window.onload = function () {
   // Set default number input value to 1
   numberInput.value = 1;
 
-  // Initialize animation speed from slider or set default
-  if (speedSlider) {
-    speedSlider.value = speed;
-    speedValue.textContent = `${speed}ms`;
-
-    // Add event listener for speed slider
-    speedSlider.addEventListener("input", function () {
-      speed = parseInt(this.value);
-      speedValue.textContent = `${speed}ms`;
-    });
+  // Initialize animation speed from localStorage or set default
+  if (speedInput) {
+    speedInput.value = speed;
   }
 
   // Fix the history modal instead of creating a new one
@@ -64,6 +57,7 @@ window.onload = function () {
 
   // Initialize text list on page load
   updateTextList();
+  updateModeIndicator();
 
   // Function to toggle settings modal
   function toggleSettingsModal() {
@@ -120,6 +114,7 @@ window.onload = function () {
       cutToggle.classList.add("from-green-400", "to-green-600");
     }
   }
+
   function randomizeMultiple() {
     const count = parseInt(numberInput.value);
 
@@ -211,6 +206,10 @@ window.onload = function () {
         cutMode: cutMode,
         removedTexts: cutMode ? removedTexts : [],
       });
+
+      // Save to localStorage
+      localStorage.setItem('randomizeTexts', JSON.stringify(texts));
+      localStorage.setItem('randomizeHistory', JSON.stringify(history));
 
       updateHistoryList();
       updateTextList();
@@ -308,6 +307,9 @@ window.onload = function () {
       emptyMessage.className = "p-3 text-center text-gray-500 italic";
       historyList.appendChild(emptyMessage);
     }
+
+    // Save history to localStorage
+    localStorage.setItem('randomizeHistory', JSON.stringify(history));
   }
 
   // Download history as CSV
@@ -365,6 +367,9 @@ window.onload = function () {
       cutToggleBtn.classList.remove("from-red-400", "to-red-600");
       cutToggleBtn.classList.add("from-green-400", "to-green-600");
     }
+
+    // Save cut mode to localStorage
+    localStorage.setItem('randomizeCutMode', JSON.stringify(cutMode));
 
     updateTextList();
     updateModeIndicator();
@@ -453,6 +458,7 @@ window.onload = function () {
   function clearHistory() {
     history = [];
     updateHistoryList();
+    localStorage.removeItem('randomizeHistory');
   }
 
   // Add text function
@@ -481,6 +487,9 @@ window.onload = function () {
     // Add to texts array
     texts = texts.concat(newTexts);
 
+    // Save to localStorage
+    localStorage.setItem('randomizeTexts', JSON.stringify(texts));
+
     // Update the text list
     updateTextList();
 
@@ -500,6 +509,7 @@ window.onload = function () {
       toggleSettingsModal(); // Close the settings modal after saving
     }
   }
+
   if (speedInput) {
     speedInput.value = speed;
 
@@ -515,6 +525,9 @@ window.onload = function () {
 
       // Update the speed variable
       speed = parseInt(this.value);
+
+      // Save to localStorage
+      localStorage.setItem('randomizeSpeed', speed);
     });
   }
 };
