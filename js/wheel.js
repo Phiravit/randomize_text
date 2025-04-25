@@ -190,6 +190,25 @@ function spinWheel() {
     prizeText.textContent = selectedReward.name;
     resultDisplay.classList.remove("hidden");
     addToHistory(selectedReward);
+    
+    // Display the selected reward in the center of the screen
+    const rewardDisplay = document.createElement("div");
+    rewardDisplay.textContent = selectedReward.name;
+    rewardDisplay.style.position = "fixed";
+    rewardDisplay.style.top = "50%";
+    rewardDisplay.style.left = "50%";
+    rewardDisplay.style.transform = "translate(-50%, -50%)";
+    rewardDisplay.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+    rewardDisplay.style.color = "white";
+    rewardDisplay.style.padding = "20px";
+    rewardDisplay.style.borderRadius = "10px";
+    rewardDisplay.style.zIndex = "1000";
+    rewardDisplay.style.fontSize = "2em"; // Increased font size
+    document.body.appendChild(rewardDisplay);
+
+    setTimeout(() => {
+      document.body.removeChild(rewardDisplay);
+    }, 3000);
 
     // Modify reward size if cut mode is enabled
     if (cutMode) {
@@ -362,11 +381,14 @@ function updateRemainingRewardsDisplay() {
       "flex items-center justify-between p-2 bg-white/80 rounded-lg shadow-sm";
 
     rewardItem.innerHTML = `
+        <span class="text-sm font-bold px-2 py-1 bg-gray-100 rounded-full">x${reward.size}</span>
         <div class="flex items-center gap-2">
-          <div class="w-4 h-4 rounded-full" style="background-color: ${reward.color}"></div>
-          <span class="font-medium">${reward.name}</span>
+         <div class="w-4 h-4 rounded-full" style="background-color: ${reward.color}"></div>
+        <span class="font-medium">${reward.name}</span>
+          
         </div>
-        <span class="text-sm font-bold px-2 py-1 bg-gray-100 rounded-full">${reward.size}x</span>
+      
+        
       `;
 
     rewardsList.appendChild(rewardItem);
@@ -450,6 +472,13 @@ function updateModeIndicator() {
 function setupEventListeners() {
   // Spin button
   spinBtn.addEventListener("click", spinWheel);
+   // Spacebar key press
+  document.addEventListener("keydown", (event) => {
+  if (event.code === "Space") {
+    event.preventDefault();
+    spinWheel();
+  }
+});
 
   // Settings toggle
   settingsToggle.addEventListener("click", () => {
@@ -539,7 +568,8 @@ function setupEventListeners() {
       cutMode = false;
       totalRotation = 0; // Reset totalRotation
 
-      init();
+      // init();
+      location.reload(); // Reload the page to reflect changes
     }
   });
 
@@ -592,8 +622,13 @@ function addBulkRewards() {
 
   lines.forEach((line) => {
     // Split by comma to extract name and size
-    const parts = line.split(",");
+    // const parts = line.split(",");
+    // const name = parts[0].trim();
+
+      // Split by the last comma to extract name and size
+    const parts = line.split(/,(?=[^,]*$)/);
     const name = parts[0].trim();
+
     // Parse size from the second part, defaulting to 1 if not provided or invalid
     const size = parts.length > 1 ? parseInt(parts[1].trim()) : 1;
 
