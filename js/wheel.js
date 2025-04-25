@@ -43,7 +43,9 @@ const howToPlayBtn = document.getElementById("howToPlayBtn");
 const howToPlayModal = document.getElementById("howToPlayModal");
 const closeHowToPlayBtn = document.getElementById("closeHowToPlayBtn");
 
-// Initialize
+/**
+ * Initializes the wheel component with necessary setup
+ */
 function init() {
   totalRotation = 0;
   updateAppTitle();
@@ -55,7 +57,9 @@ function init() {
   updateRemainingRewardsDisplay();
 }
 
-// Create wheel segments
+/**
+ * Draws the wheel visualization on the canvas
+ */
 function drawWheel() {
   wheel.innerHTML = "";
   const totalSize = rewards.reduce((sum, reward) => sum + reward.size, 0);
@@ -165,6 +169,9 @@ function adjustColor(color, amount) {
 }
 let totalRotation = 0;
 
+/**
+ * Spins the wheel with animation and selects a random text
+ */
 function spinWheel() {
   if (isSpinning) return;
 
@@ -206,7 +213,7 @@ function spinWheel() {
     rewardDisplay.style.padding = "20px";
     rewardDisplay.style.borderRadius = "10px";
     rewardDisplay.style.zIndex = "1000";
-    rewardDisplay.style.fontSize = "2em"; // Increased font size
+    rewardDisplay.style.fontSize = "2em";
     document.body.appendChild(rewardDisplay);
 
     setTimeout(() => {
@@ -277,7 +284,9 @@ function addToHistory(reward) {
   updateTotalWins();
 }
 
-// Update history list in UI
+/**
+ * Updates the history list display
+ */
 function updateHistoryList() {
   historyList.innerHTML = "";
 
@@ -410,7 +419,9 @@ function getRandomColor() {
   return color;
 }
 
-// Download history
+/**
+ * Downloads the history as a CSV file
+ */
 function downloadHistory() {
   if (spinHistory.length === 0) {
     alert("No spin history to download.");
