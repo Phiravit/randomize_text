@@ -39,6 +39,12 @@ const backToSettingsBtn = document.getElementById("backToSettingsBtn");
 const bulkRewardsInput = document.getElementById("bulkRewardsInput");
 const bulkRewardInputError = document.getElementById("bulkRewardInputError");
 const bulkAddRewardsBtn = document.getElementById("bulkAddRewardsBtn");
+<<<<<<< HEAD
+=======
+const howToUseBtn = document.getElementById("howToUseBtn");
+const howToUseModal = document.getElementById("howToUseModal");
+const closeHowToUseBtn = document.getElementById("closeHowToUseBtn");
+>>>>>>> cf7faf7 (clean up code + recommenting and add how to play button)
 
 // Initialize
 function init() {
@@ -167,6 +173,10 @@ function spinWheel() {
 
   isSpinning = true;
   spinBtn.disabled = true;
+<<<<<<< HEAD
+=======
+  cutToggle.classList.add("opacity-50", "cursor-not-allowed", "pointer-events-none");
+>>>>>>> cf7faf7 (clean up code + recommenting and add how to play button)
   resultDisplay.classList.add("hidden");
 
   const totalSize = rewards.reduce((sum, reward) => sum + reward.size, 0);
@@ -203,7 +213,11 @@ function spinWheel() {
     rewardDisplay.style.padding = "20px";
     rewardDisplay.style.borderRadius = "10px";
     rewardDisplay.style.zIndex = "1000";
+<<<<<<< HEAD
     rewardDisplay.style.fontSize = "2em"; // Increased font size
+=======
+    rewardDisplay.style.fontSize = "2em";
+>>>>>>> cf7faf7 (clean up code + recommenting and add how to play button)
     document.body.appendChild(rewardDisplay);
 
     setTimeout(() => {
@@ -232,6 +246,10 @@ function spinWheel() {
 
     isSpinning = false;
     spinBtn.disabled = false;
+<<<<<<< HEAD
+=======
+    cutToggle.classList.remove("opacity-50", "cursor-not-allowed", "pointer-events-none");
+>>>>>>> cf7faf7 (clean up code + recommenting and add how to play button)
   }, spinDuration * 1000 + 100);
 }
 
@@ -472,6 +490,7 @@ function updateModeIndicator() {
 function setupEventListeners() {
   // Spin button
   spinBtn.addEventListener("click", spinWheel);
+<<<<<<< HEAD
    // Spacebar key press
   document.addEventListener("keydown", (event) => {
   if (event.code === "Space") {
@@ -483,6 +502,18 @@ function setupEventListeners() {
   // Settings toggle
   settingsToggle.addEventListener("click", () => {
     // Update rewards list in settings before showing modal
+=======
+  // Spacebar key press
+  document.addEventListener("keydown", (event) => {
+    if (event.code === "Space") {
+      event.preventDefault();
+      spinWheel();
+    }
+  });
+
+  // Settings toggle
+  settingsToggle.addEventListener("click", () => {
+>>>>>>> cf7faf7 (clean up code + recommenting and add how to play button)
     updateRewardsList();
     settingsModal.classList.remove("hidden");
   });
@@ -492,6 +523,25 @@ function setupEventListeners() {
     settingsModal.classList.add("hidden");
   });
 
+<<<<<<< HEAD
+=======
+  // How to Use modal
+  howToUseBtn.addEventListener("click", () => {
+    howToUseModal.classList.remove("hidden");
+  });
+
+  closeHowToUseBtn.addEventListener("click", () => {
+    howToUseModal.classList.add("hidden");
+  });
+
+  // Close modals when clicking outside
+  howToUseModal.addEventListener("click", (e) => {
+    if (e.target === howToUseModal) {
+      howToUseModal.classList.add("hidden");
+    }
+  });
+
+>>>>>>> cf7faf7 (clean up code + recommenting and add how to play button)
   // Save title
   saveTitleBtn.addEventListener("click", () => {
     appTitle = titleInput.value.trim() || "Reward Wheel Spinner";
@@ -621,6 +671,7 @@ function addBulkRewards() {
   let addedCount = 0;
 
   lines.forEach((line) => {
+<<<<<<< HEAD
     // Split by comma to extract name and size
     // const parts = line.split(",");
     // const name = parts[0].trim();
@@ -630,6 +681,10 @@ function addBulkRewards() {
     const name = parts[0].trim();
 
     // Parse size from the second part, defaulting to 1 if not provided or invalid
+=======
+    const parts = line.split(/,(?=[^,]*$)/);
+    const name = parts[0].trim();
+>>>>>>> cf7faf7 (clean up code + recommenting and add how to play button)
     const size = parts.length > 1 ? parseInt(parts[1].trim()) : 1;
 
     if (name) {
@@ -662,7 +717,14 @@ function addBulkRewards() {
   }, 1500);
 }
 // Add event listener for the Bulk Add button
+<<<<<<< HEAD
 bulkAddRewardsBtn.addEventListener("click", addBulkRewards);
+=======
+bulkAddRewardsBtn.addEventListener("click", () => {
+  addBulkRewards();
+  spinBtn.disabled = false; // Enable spin button after bulk add
+});
+>>>>>>> cf7faf7 (clean up code + recommenting and add how to play button)
 
 // Close bulk add modal when clicking outside
 bulkAddModal.addEventListener("click", (e) => {
