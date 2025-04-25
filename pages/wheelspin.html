@@ -25,7 +25,13 @@
       class="w-4/5 mx-auto bg-white/95 p-4 md:p-8 rounded-2xl shadow-xl backdrop-blur relative"
     >
       <!-- Settings Button -->
-      <div class="absolute top-4 right-4 z-10">
+      <div class="absolute top-4 right-4 z-10 flex gap-2">
+        <button
+          id="howToPlayBtn"
+          class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300"
+        >
+          ❓
+        </button>
         <button
           id="settingsToggle"
           class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300"
@@ -151,6 +157,63 @@
           <div id="historyList" class="space-y-2"></div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- How to Play Modal -->
+    <div
+      id="howToPlayModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden transition-opacity duration-300"
+    >
+      <div
+        class="bg-white rounded-xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-2xl"
+      >
+        <div class="p-4 border-b flex justify-between items-center">
+          <h3 class="text-xl font-bold">❓ How to Play</h3>
+          <button
+            id="closeHowToPlayBtn"
+            class="text-gray-500 hover:text-gray-700 text-xl"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="p-4 flex-grow overflow-y-auto">
+          <div class="space-y-4">
+            <div>
+              <h4 class="text-lg font-semibold mb-2">🎯 Basic Gameplay</h4>
+              <p class="text-gray-700">
+                Click the "SPIN THE WHEEL" button to spin the wheel and win a random reward. The wheel will spin and land on a random segment.
+              </p>
+            </div>
+            
+            <div>
+              <h4 class="text-lg font-semibold mb-2">⚙️ Settings</h4>
+              <p class="text-gray-700">
+                Use the settings button (⚙️) to:
+              </p>
+              <ul class="list-disc pl-5 mt-2 text-gray-700">
+                <li>Add or remove rewards</li>
+                <li>Change the wheel's title</li>
+                <li>Adjust spin duration</li>
+                <li>Bulk add multiple rewards at once</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="text-lg font-semibold mb-2">✂️ Cut Mode</h4>
+              <p class="text-gray-700">
+                When Cut Mode is ON, winning a reward will remove it from the wheel. When OFF, rewards remain on the wheel for future spins.
+              </p>
+            </div>
+
+            <div>
+              <h4 class="text-lg font-semibold mb-2">📥 History</h4>
+              <p class="text-gray-700">
+                View your recent wins in the history section below the wheel. You can also download your spin history as a CSV file.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

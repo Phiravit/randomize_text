@@ -39,6 +39,9 @@ const backToSettingsBtn = document.getElementById("backToSettingsBtn");
 const bulkRewardsInput = document.getElementById("bulkRewardsInput");
 const bulkRewardInputError = document.getElementById("bulkRewardInputError");
 const bulkAddRewardsBtn = document.getElementById("bulkAddRewardsBtn");
+const howToPlayBtn = document.getElementById("howToPlayBtn");
+const howToPlayModal = document.getElementById("howToPlayModal");
+const closeHowToPlayBtn = document.getElementById("closeHowToPlayBtn");
 
 // Initialize
 function init() {
@@ -485,6 +488,23 @@ function setupEventListeners() {
     // Update rewards list in settings before showing modal
     updateRewardsList();
     settingsModal.classList.remove("hidden");
+  });
+
+  // How to Play toggle
+  howToPlayBtn.addEventListener("click", () => {
+    howToPlayModal.classList.remove("hidden");
+  });
+
+  // Close How to Play
+  closeHowToPlayBtn.addEventListener("click", () => {
+    howToPlayModal.classList.add("hidden");
+  });
+
+  // Close How to Play when clicking outside
+  howToPlayModal.addEventListener("click", (e) => {
+    if (e.target === howToPlayModal) {
+      howToPlayModal.classList.add("hidden");
+    }
   });
 
   // Close settings

@@ -24,7 +24,13 @@
         class="w-4/5 mx-auto bg-white/95 p-4 md:p-8 rounded-2xl shadow-xl backdrop-blur relative"
       >
         <!-- Settings Button -->
-        <div class="absolute top-4 right-4 z-10">
+        <div class="absolute top-4 right-4 z-10 flex gap-2">
+          <button
+            id="howToPlayBtn"
+            class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300"
+          >
+            ❓
+          </button>
           <button
             id="settingsToggle"
             class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300"
@@ -114,6 +120,63 @@
           class="max-h-64 overflow-y-auto rounded-xl p-4 bg-white/50 backdrop-blur shadow-inner mb-6 min-h-[50px] scrollbar-thin"
         >
           <div id="textList" class="text-list"></div>
+        </div>
+      </div>
+
+      <!-- How to Play Modal -->
+      <div
+        id="howToPlayModal"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden transition-opacity duration-300"
+      >
+        <div
+          class="bg-white rounded-xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-2xl"
+        >
+          <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="text-xl font-bold">❓ How to Play</h3>
+            <button
+              id="closeHowToPlayBtn"
+              class="text-gray-500 hover:text-gray-700 text-xl"
+            >
+              &times;
+            </button>
+          </div>
+          <div class="p-4 flex-grow overflow-y-auto">
+            <div class="space-y-4">
+              <div>
+                <h4 class="text-lg font-semibold mb-2">🎲 Basic Gameplay</h4>
+                <p class="text-gray-700">
+                  Enter the number of items you want to randomize and click the "Randomize" button. The system will randomly select the specified number of items from your available texts.
+                </p>
+              </div>
+              
+              <div>
+                <h4 class="text-lg font-semibold mb-2">⚙️ Settings</h4>
+                <p class="text-gray-700">
+                  Use the settings button (⚙️) to:
+                </p>
+                <ul class="list-disc pl-5 mt-2 text-gray-700">
+                  <li>Add new texts for randomization</li>
+                  <li>Change the application title</li>
+                  <li>Adjust animation speed</li>
+                  <li>View selection history</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="text-lg font-semibold mb-2">🔄 Cut Mode</h4>
+                <p class="text-gray-700">
+                  When Cut Mode is ON, selected texts will be removed from the available pool. When OFF, texts remain available for future randomizations.
+                </p>
+              </div>
+
+              <div>
+                <h4 class="text-lg font-semibold mb-2">📝 History</h4>
+                <p class="text-gray-700">
+                  View your randomization history and download it as a CSV file. The history shows all your previous selections, including whether they were made in Cut Mode.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

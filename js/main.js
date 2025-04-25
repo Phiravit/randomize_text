@@ -1,12 +1,12 @@
 window.onload = function () {
-  // State variables with localStorage initialization
+  // Initialize state variables from localStorage or set defaults
   let texts = JSON.parse(localStorage.getItem('randomizeTexts')) || [];
   let cutMode = JSON.parse(localStorage.getItem('randomizeCutMode')) || false;
   let selectedText = null;
-  let speed = parseInt(localStorage.getItem('randomizeSpeed')) || 600; // Animation speed
-  let history = JSON.parse(localStorage.getItem('randomizeHistory')) || []; // History array to track selections
+  let speed = parseInt(localStorage.getItem('randomizeSpeed')) || 600; // Animation speed in ms
+  let history = JSON.parse(localStorage.getItem('randomizeHistory')) || []; // Track selection history
 
-  // DOM elements
+  // Cache DOM element references
   const titleInput = document.getElementById("titleInput");
   const saveTitleBtn = document.getElementById("saveTitleBtn");
   const appTitle = document.getElementById("appTitle");
@@ -24,6 +24,9 @@ window.onload = function () {
   const downloadHistoryBtn = document.getElementById("downloadHistoryBtn");
   const historyModal = document.getElementById("historyModal");
   const resetDataBtn = document.getElementById("resetDataBtn");
+  const howToPlayBtn = document.getElementById("howToPlayBtn");
+  const howToPlayModal = document.getElementById("howToPlayModal");
+  const closeHowToPlayBtn = document.getElementById("closeHowToPlayBtn");
 
   // Settings modal elements
   const settingsToggle = document.getElementById("settingsToggle");
@@ -36,18 +39,19 @@ window.onload = function () {
   // Set default number input value to 1
   numberInput.value = 1;
 
-  // Initialize animation speed from localStorage or set default
+  // Initialize animation speed from localStorage
   if (speedInput) {
     speedInput.value = speed;
   }
 
-  // Fix the history modal instead of creating a new one
+  // Fix history modal event handling
   fixHistoryModal();
 
-  // Event listeners
+  // Add event listeners
   addTextBtn.addEventListener("click", addText);
   saveTitleBtn.addEventListener("click", saveTitle);
   randomizeBtn.addEventListener("click", randomizeMultiple);
+  // Add space key as shortcut for randomization
   document.addEventListener("keydown", (event) => {
     if (event.code === "Space") {
       event.preventDefault();
@@ -62,12 +66,29 @@ window.onload = function () {
   settingsToggle.addEventListener("click", toggleSettingsModal);
   closeSettingsBtn.addEventListener("click", toggleSettingsModal);
 
-  // Initialize text list on page load
+  // How to Play modal event listeners
+  howToPlayBtn.addEventListener("click", () => {
+    howToPlayModal.classList.remove("hidden");
+  });
+
+  closeHowToPlayBtn.addEventListener("click", () => {
+    howToPlayModal.classList.add("hidden");
+  });
+
+  howToPlayModal.addEventListener("click", (e) => {
+    if (e.target === howToPlayModal) {
+      howToPlayModal.classList.add("hidden");
+    }
+  });
+
+  // Initialize UI on page load
   updateTextList();
   updateModeIndicator();
   updateHistoryList();
 
-  // Function to toggle settings modal
+  /**
+   * Toggles the settings modal visibility
+   */
   function toggleSettingsModal() {
     if (settingsModal.classList.contains("hidden")) {
       settingsModal.classList.remove("hidden");
@@ -88,35 +109,42 @@ window.onload = function () {
       toggleSettingsModal();
     }
   });
-  // Reset all P Link added 
+
+  // Reset all data when reset button clicked
   resetDataBtn.addEventListener("click", () => {
     if (
       confirm(
         "Are you sure you want to reset all data? This will clear all rewards and history."
       )
     ) {
+      // Clear all localStorage data
       localStorage.removeItem("randomizeTexts");
       localStorage.removeItem("randomizeCutMode");
       localStorage.removeItem("randomizeSpeed");
       localStorage.removeItem("randomizeHistory");
     
-
-      texts =  [];
-      cutMode =  false;
+      // Reset variables to defaults
+      texts = [];
+      cutMode = false;
       selectedText = null;
-      speed = 600; // Animation speed
-      history =[]
-      location.reload(); // Reload the page to reflect changes
-
- 
+      speed = 600;
+      history = [];
+      
+      // Reload the page to reflect changes
+      location.reload();
     }
   });
+
+  /**
+   * Updates the mode indicator text and styling based on current cut mode
+   */
   function updateModeIndicator() {
     modeIndicator.textContent = `Current Mode: ${
       cutMode ? "Remove" : "Keep"
     } texts after selection`;
 
     if (cutMode) {
+      // Apply "cut mode" styling (red)
       modeIndicator.classList.remove(
         "bg-green-100/15",
         "text-green-700",
@@ -130,6 +158,7 @@ window.onload = function () {
       cutToggle.classList.remove("from-green-400", "to-green-600");
       cutToggle.classList.add("from-red-400", "to-red-600");
     } else {
+      // Apply "keep mode" styling (green)
       modeIndicator.classList.remove(
         "bg-red-100/15",
         "text-red-700",
@@ -145,6 +174,9 @@ window.onload = function () {
     }
   }
 
+  /**
+   * Main randomization function that selects multiple items based on user input
+   */
   function randomizeMultiple() {
     const count = parseInt(numberInput.value);
 
@@ -161,6 +193,7 @@ window.onload = function () {
     // Clear previous error message
     numberError.textContent = "";
 
+    // Validate input
     if (isNaN(count) || count < 1) {
       numberError.textContent = "Number must be greater than 0";
       return;
@@ -176,6 +209,7 @@ window.onload = function () {
       return;
     }
 
+    // Disable UI during randomization
     disableButtons(true);
 
     let randomized = [];
@@ -185,10 +219,13 @@ window.onload = function () {
     // Clear the display at the start
     textDisplay.innerHTML = "<div class='text-xl'>Randomizing...</div>";
 
-    // Simple shuffle effect then show all results at once
+    // Set up shuffle animation
     let shuffleCount = 0;
     const maxShuffles = 10;
 
+    /**
+     * Creates shuffling animation effect before showing final results
+     */
     function shuffleText() {
       if (shuffleCount < maxShuffles) {
         // Show a random text from the available pool
@@ -205,7 +242,9 @@ window.onload = function () {
       }
     }
 
-
+    /**
+     * Selects final random items after animation completes
+     */
     function selectFinalItems() {
       // Select the required number of random items
       for (let j = 0; j < count; j++) {
@@ -215,6 +254,7 @@ window.onload = function () {
           randomized.push(text);
           availableTexts.splice(randomIndex, 1);
 
+          // In cut mode, remove selected items from the main text array
           if (cutMode) {
             const indexToRemove = texts.indexOf(text);
             if (indexToRemove !== -1) {
@@ -242,6 +282,7 @@ window.onload = function () {
       localStorage.setItem('randomizeTexts', JSON.stringify(texts));
       localStorage.setItem('randomizeHistory', JSON.stringify(history));
 
+      // Update UI
       updateHistoryList();
       updateTextList();
       disableButtons(false);
@@ -251,6 +292,10 @@ window.onload = function () {
     shuffleText();
   }
 
+  /**
+   * Displays the final randomization results
+   * @param {Array} results - Array of selected text items
+   */
   function showFinalResults(results) {
     // Create a new results display
     textDisplay.innerHTML = "";
@@ -277,6 +322,9 @@ window.onload = function () {
     textDisplay.appendChild(resultContainer);
   }
 
+  /**
+   * Updates the history list display
+   */
   function updateHistoryList() {
     const historyList = document.getElementById("historyList");
     if (!historyList) return;
@@ -343,7 +391,9 @@ window.onload = function () {
     localStorage.setItem('randomizeHistory', JSON.stringify(history));
   }
 
-  // Download history as CSV
+  /**
+   * Downloads history as a CSV file
+   */
   function downloadHistory() {
     if (history.length === 0) {
       alert("No history to download");
@@ -383,7 +433,9 @@ window.onload = function () {
     document.body.removeChild(link);
   }
 
-  // Mode toggle
+  /**
+   * Toggles between cut mode and keep mode
+   */
   function toggleCutMode() {
     cutMode = !cutMode;
 
@@ -406,13 +458,19 @@ window.onload = function () {
     updateModeIndicator();
   }
 
+  /**
+   * Enables or disables UI buttons during randomization
+   * @param {boolean} disabled - Whether buttons should be disabled
+   */
   function disableButtons(disabled) {
     randomizeBtn.disabled = disabled;
     cutToggle.disabled = disabled;
     numberInput.disabled = disabled;
   }
 
-  // Updates text list
+  /**
+   * Updates the text list display
+   */
   function updateTextList() {
     textList.innerHTML = "";
 
@@ -443,7 +501,9 @@ window.onload = function () {
     }
   }
 
-  // Fix history modal instead of creating it
+  /**
+   * Sets up proper event handling for the history modal
+   */
   function fixHistoryModal() {
     if (historyModal) {
       // Find the close button within the modal
@@ -470,7 +530,9 @@ window.onload = function () {
     }
   }
 
-  // Toggle history modal
+  /**
+   * Toggles the history modal visibility
+   */
   function toggleHistoryModal() {
     if (historyModal.classList.contains("hidden")) {
       historyModal.classList.remove("hidden");
@@ -485,14 +547,18 @@ window.onload = function () {
     }
   }
 
-  // Clear history
+  /**
+   * Clears the selection history
+   */
   function clearHistory() {
     history = [];
     updateHistoryList();
     localStorage.removeItem('randomizeHistory');
   }
 
-  // Add text function
+  /**
+   * Adds new text items to the collection
+   */
   function addText() {
     const input = textInput.value.trim();
 
@@ -532,6 +598,9 @@ window.onload = function () {
     textInputError.style.color = "#10b981"; // Green success color
   }
 
+  /**
+   * Saves the app title
+   */
   function saveTitle() {
     const newTitle = titleInput.value.trim();
 
@@ -541,6 +610,9 @@ window.onload = function () {
     }
   }
 
+  /**
+   * Handles speed input and saves to localStorage
+   */
   if (speedInput) {
     speedInput.value = speed;
 
