@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reward Wheel Spinner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../style/wheel_style.css" />
+  </head>
+
+  <body
+    class="min-h-screen p-4 md:p-8 bg-gradient-to-br from-rose-500 to-orange-500"
+  >
+    <!-- Back to Main Menu Button -->
+    <div class="w-4/5 mx-auto mb-4 flex justify-between">
+      <a
+        href="../index.html"
+        class="inline-block px-4 py-2 text-white bg-gray-800 rounded-lg shadow hover:bg-gray-700 transition-all duration-300 flex items-center gap-2"
+      >
+        <span>←</span> Back to Main Menu
+      </a>
+      <button
+        id="howToUseBtn"
+        class="inline-block px-4 py-2 text-white bg-blue-600 rounded-lg shadow hover:bg-blue-700 transition-all duration-300 flex items-center gap-2"
+      >
+        <span>❓</span> How to Use
+      </button>
+    </div>
+
+    <div
+      class="w-4/5 mx-auto bg-white/95 p-4 md:p-8 rounded-2xl shadow-xl backdrop-blur relative"
+    >
+      <!-- Settings Button -->
+      <div class="absolute top-4 right-4 z-10">
+        <button
+          id="settingsToggle"
+          class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300"
+        >
+          ⚙️
+        </button>
+      </div>
+
+      <!-- Title Section -->
+      <div class="relative pb-2">
+        <h1
+          id="appTitle"
+          class="text-3xl md:text-4xl text-center mb-20 font-bold bg-gradient-to-r from-rose-500 to-orange-500 text-transparent bg-clip-text"
+        >
+          <span class="text-white">🎁</span> Reward Wheel Spinner
+          <span class="text-white">🎁</span>
+        </h1>
+      </div>
+
+      <!-- Main Content Container -->
+      <div class="space-y-6">
+        <!-- Main Content with Wheel and Remaining Rewards -->
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+          <!-- Remaining Rewards Section -->
+          <div id="remainingRewardsContainer" class="w-full md:w-1/3 md:mt-[10%]">
+            <div class="text-center mb-2">
+            </div>
+
+            <div
+              id="remainingRewardsDisplay"
+              class="bg-gradient-to-br from-white to-gray-50 p-4 rounded-xl shadow-lg border border-gray-100 "
+            >
+              <div id="rewardListContainer" class="space-y-3 text-center">
+                <div class="text-center text-gray-500 py-4">
+                  No rewards added yet. Use settings to configure rewards.
+                </div>
+              </div>
+
+              <div class="border-t mt-4 pt-2 text-xs text-gray-500 text-center">
+                Total wheel segments: <span id="totalSegments">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wheel Section -->
+          <div id="wheelContainer" class="w-full md:w-2/3 flex flex-col items-center">
+            <div class="wheel-container mb-6">
+              <svg
+                id="pointer"
+                viewBox="0 0 30 30"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <polygon
+                  points="15,0 30,15 15,30 0,15"
+                  fill="#ffffff"
+                  stroke="#000000"
+                  stroke-width="2"
+                />
+              </svg>
+              <div id="wheel" class="shadow-lg"></div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex items-center justify-center gap-4 mb-4">
+              <button
+                id="spinBtn"
+                class="px-6 py-3 text-base font-bold border-none rounded-full transition-all duration-300 shadow-md bg-gradient-to-br from-rose-500 to-orange-500 text-white uppercase tracking-wide flex items-center justify-center gap-2 hover:translate-y-[-2px] hover:shadow-lg active:translate-y-[1px] active:shadow-sm disabled:opacity-60 disabled:cursor-not-allowed w-[200px]"
+              >
+                🎯 SPIN THE WHEEL
+              </button>
+              
+              <button
+                id="cutToggle"
+                class="px-6 py-3 text-base font-bold border-none rounded-full transition-all duration-300 shadow-md bg-gradient-to-br from-blue-400 to-indigo-500 text-white uppercase tracking-wide flex items-center justify-center gap-2 hover:translate-y-[-2px] hover:shadow-lg active:translate-y-[1px] active:shadow-sm w-[200px]"
+              >
+                ✂️ CUT MODE: OFF
+              </button>
+            </div>
+            
+            <!-- Mode Indicator -->
+            <div
+              id="modeIndicator"
+              class="text-center p-3 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-300 rounded-lg inline-block shadow-sm font-medium hidden"
+            >
+              🔄 Current Mode: Keep rewards after selection
+            </div>
+          </div>
+        </div>
+          <!-- Remaining Rewards Section -->
+          <div id="remainingRewardsContainer" class="w-full md:w-1/3 order-1 md:order-2">
+            <div class="text-center mb-2">
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Display Section -->
+        <div
+          id="resultDisplay"
+          class="text-2xl md:text-3xl text-center my-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl text-gray-800 transition-all duration-300 shadow border border-white/30 min-h-[100px] flex flex-col items-center justify-center hidden"
+        >
+          <div id="resultText">
+            You won: <span id="prizeText" class="font-bold"></span>
+          </div>
+          <div id="totalWins" class="text-base text-gray-600 mt-2">
+            Total spins: 0
+          </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="flex justify-between items-center mt-6 mb-4">
+          <h2 class="text-2xl text-gray-800 font-bold">Recent Wins</h2>
+          <button
+            id="downloadHistoryBtn"
+            class="p-2 text-sm font-semibold rounded-lg text-white bg-gradient-to-br from-rose-400 to-orange-400 shadow hover:shadow-md transition-all duration-300"
+          >
+            📥 Download History
+          </button>
+        </div>
+
+        <div
+          class="max-h-48 overflow-y-auto rounded-xl p-4 bg-white/50 backdrop-blur shadow-inner mb-6 min-h-[50px] scrollbar-thin"
+        >
+          <div id="historyList" class="space-y-2"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div
+      id="settingsModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden transition-opacity duration-300"
+    >
+      <div
+        class="bg-white rounded-xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-2xl"
+      >
+
+        <div class="p-4 border-b flex justify-between items-center">
+          <h3 class="text-xl font-bold">⚙️ Wheel Settings</h3>
+          <button
+            id="closeSettingsBtn"
+            class="text-gray-500 hover:text-gray-700 text-xl"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="p-4 flex-grow overflow-y-auto">
+          <!-- Title Editor Section -->
+          <div class="mb-6">
+            <h4 class="text-lg font-semibold mb-3">Title Settings</h4>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Application Title</label
+              >
+              <input
+                type="text"
+                id="titleInput"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                value="Reward Wheel Spinner"
+              />
+            </div>
+            <button
+              id="saveTitleBtn"
+              class="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors w-full"
+            >
+              Save Title
+            </button>
+          </div>
+
+          <!-- Wheel Rewards Settings -->
+          <div class="mb-6 border-t pt-4 mt-4">
+            <h4 class="text-lg font-semibold mb-3">Manage Rewards</h4>
+            <p class="text-sm text-gray-600 mb-3">
+              Each reward needs a name and a size value. The size determines how
+              much of the wheel it occupies (e.g., if all rewards add up to 100,
+              a reward with size 25 would take up 25% of the wheel).
+            </p>
+
+            <div id="rewardsList" class="space-y-3 mb-4"></div>
+
+            <div class="flex gap-2 mb-4">
+              <input
+                type="text"
+                id="newRewardName"
+                placeholder="Reward name"
+                class="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+              />
+              <input
+                type="number"
+                id="newRewardSize"
+                placeholder="Size"
+                min="1"
+                class="w-20 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+              />
+              <button
+                id="addRewardBtn"
+                class="px-3 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+            <div id="rewardInputError" class="text-xs text-red-500 mb-2"></div>
+
+            <!-- Button to open bulk add modal -->
+            <button
+              id="openBulkAddBtn"
+              class="px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-300 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all w-full mt-2"
+            >
+              Bulk Add Rewards
+            </button>
+
+            <button
+              id="saveRewardsBtn"
+              class="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors w-full mt-4"
+            >
+              Save Rewards Configuration
+            </button>
+          </div>
+
+          <!-- Animation Settings -->
+          <div class="mb-6 border-t pt-4 mt-4">
+            <h4 class="text-lg font-semibold mb-3">Animation Settings</h4>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Spin Duration (seconds)</label
+              >
+              <div class="flex items-center gap-3">
+                <input
+                  type="number"
+                  id="spinDurationInput"
+                  min="1"
+                  max="10"
+                  step="0.5"
+                  value="3"
+                  class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                />
+                <span class="text-sm font-medium">seconds</span>
+              </div>
+            </div>
+          </div>
+          <!-- Reset Button -->
+          <div class="mb-4 border-t pt-4 mt-4">
+            <button
+              id="resetAllBtn"
+              class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors w-full"
+            >
+              Reset All Data
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk Add Modal -->
+    <div
+      id="bulkAddModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden transition-opacity duration-300"
+    >
+      <div
+        class="bg-white rounded-xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-2xl"
+      >
+        <div class="p-4 border-b flex justify-between items-center">
+          <h3 class="text-xl font-bold">📋 Bulk Add Rewards</h3>
+          <button
+            id="closeBulkAddBtn"
+            class="text-gray-500 hover:text-gray-700 text-xl"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="p-4 flex-grow overflow-y-auto">
+          <p class="text-sm text-gray-600 mb-3">
+            Add multiple rewards at once. Enter one reward per line in the
+            box.<br />
+            format: "name ,size". ("," can be place anywhere space doesn't
+            matter)
+          </p>
+          <textarea
+            id="bulkRewardsInput"
+            placeholder="Prize 1,10
+Prize 2 ,5
+Prize 3 , 15"
+            class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 min-h-[150px]"
+          ></textarea>
+          <div
+            id="bulkRewardInputError"
+            class="text-xs text-red-500 mt-2 mb-2"
+          ></div>
+          <div class="flex gap-2 mt-4">
+            <button
+              id="backToSettingsBtn"
+              class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex-grow"
+            >
+              Back to Main Menu
+            </button>
+            <button
+              id="bulkAddRewardsBtn"
+              class="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors flex-grow"
+            >
+              Add Rewards
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to Use Modal -->
+    <div
+      id="howToUseModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden transition-opacity duration-300"
+    >
+      <div
+        class="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl"
+      >
+        <div class="p-4 border-b flex justify-between items-center">
+          <h3 class="text-xl font-bold">❓ How to Use the Wheel</h3>
+          <button
+            id="closeHowToUseBtn"
+            class="text-gray-500 hover:text-gray-700 text-xl"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="p-4 flex-grow overflow-y-auto">
+          <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-lg mb-2">1. Adding Rewards</h4>
+              <p class="text-gray-700">
+                Click the ⚙️ Settings button to add rewards. You can:
+              </p>
+              <ul class="list-disc pl-4 mt-2 text-gray-600">
+                <li>Add rewards one by one with name and size</li>
+                <li>Use "Bulk Add" to add multiple rewards at once</li>
+                <li>Size determines how much of the wheel each reward occupies</li>
+              </ul>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-lg mb-2">2. Spinning the Wheel</h4>
+              <p class="text-gray-700">
+                Once rewards are added, you can:
+              </p>
+              <ul class="list-disc pl-4 mt-2 text-gray-600">
+                <li>Click "SPIN THE WHEEL" to start a spin</li>
+                <li>Press Spacebar for quick spin</li>
+                <li>Watch the animation and see your result</li>
+              </ul>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-lg mb-2">3. Cut Mode</h4>
+              <p class="text-gray-700">
+                The ✂️ Cut Mode button lets you:
+              </p>
+              <ul class="list-disc pl-4 mt-2 text-gray-600">
+                <li>Toggle between keeping or removing rewards after selection</li>
+                <li>When ON, selected rewards are removed from the wheel</li>
+                <li>When OFF, all rewards stay available for future spins</li>
+              </ul>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-lg mb-2">4. History & Settings</h4>
+              <p class="text-gray-700">
+                Additional features:
+              </p>
+              <ul class="list-disc pl-4 mt-2 text-gray-600">
+                <li>View recent wins in the history section</li>
+                <li>Download spin history as a CSV file</li>
+                <li>Adjust spin duration in settings</li>
+                <li>Change the application title</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../js/wheel.js"></script>
+  </body>
+</html>
