@@ -23,6 +23,7 @@ window.onload = function () {
   const numberError = document.getElementById("numberError");
   const downloadHistoryBtn = document.getElementById("downloadHistoryBtn");
   const historyModal = document.getElementById("historyModal");
+  const resetDataBtn = document.getElementById("resetDataBtn");
 
   // Settings modal elements
   const settingsToggle = document.getElementById("settingsToggle");
@@ -47,6 +48,12 @@ window.onload = function () {
   addTextBtn.addEventListener("click", addText);
   saveTitleBtn.addEventListener("click", saveTitle);
   randomizeBtn.addEventListener("click", randomizeMultiple);
+  document.addEventListener("keydown", (event) => {
+    if (event.code === "Space") {
+      event.preventDefault();
+      randomizeMultiple();
+    }
+  });
   cutToggle.addEventListener("click", toggleCutMode);
   historyBtn.addEventListener("click", toggleHistoryModal);
   downloadHistoryBtn.addEventListener("click", downloadHistory);
@@ -58,6 +65,7 @@ window.onload = function () {
   // Initialize text list on page load
   updateTextList();
   updateModeIndicator();
+  updateHistoryList();
 
   // Function to toggle settings modal
   function toggleSettingsModal() {
@@ -80,7 +88,29 @@ window.onload = function () {
       toggleSettingsModal();
     }
   });
+  // Reset all P Link added 
+  resetDataBtn.addEventListener("click", () => {
+    if (
+      confirm(
+        "Are you sure you want to reset all data? This will clear all rewards and history."
+      )
+    ) {
+      localStorage.removeItem("randomizeTexts");
+      localStorage.removeItem("randomizeCutMode");
+      localStorage.removeItem("randomizeSpeed");
+      localStorage.removeItem("randomizeHistory");
+    
 
+      texts =  [];
+      cutMode =  false;
+      selectedText = null;
+      speed = 600; // Animation speed
+      history =[]
+      location.reload(); // Reload the page to reflect changes
+
+ 
+    }
+  });
   function updateModeIndicator() {
     modeIndicator.textContent = `Current Mode: ${
       cutMode ? "Remove" : "Keep"
@@ -174,6 +204,7 @@ window.onload = function () {
         selectFinalItems();
       }
     }
+
 
     function selectFinalItems() {
       // Select the required number of random items

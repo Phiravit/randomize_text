@@ -56,7 +56,7 @@
 
             <div
               id="remainingRewardsDisplay"
-              class="bg-gradient-to-br from-white to-gray-50 p-4 rounded-xl shadow-lg border border-gray-100 min-h-[200px] max-h-[300px] overflow-y-auto"
+              class="bg-gradient-to-br from-white to-gray-50 p-4 rounded-xl shadow-lg border border-gray-100 "
             >
               <div id="rewardListContainer" class="space-y-3 text-center">
                 <div class="text-center text-gray-500 py-4">
@@ -108,7 +108,7 @@
             <!-- Mode Indicator -->
             <div
               id="modeIndicator"
-              class="text-center p-3 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-300 rounded-lg inline-block shadow-sm font-medium"
+              class="text-center p-3 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-300 rounded-lg inline-block shadow-sm font-medium hidden"
             >
               🔄 Current Mode: Keep rewards after selection
             </div>
@@ -120,7 +120,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Result Display Section -->
         <div
           id="resultDisplay"
@@ -150,6 +150,7 @@
         >
           <div id="historyList" class="space-y-2"></div>
         </div>
+
       </div>
     </div>
 
@@ -161,6 +162,7 @@
       <div
         class="bg-white rounded-xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-2xl"
       >
+
         <div class="p-4 border-b flex justify-between items-center">
           <h3 class="text-xl font-bold">⚙️ Wheel Settings</h3>
           <button
@@ -264,7 +266,6 @@
               </div>
             </div>
           </div>
-
           <!-- Reset Button -->
           <div class="mb-4 border-t pt-4 mt-4">
             <button
