@@ -169,11 +169,39 @@ function adjustColor(color, amount) {
 }
 let totalRotation = 0;
 
+// Notification system
+function showNotification(message) {
+  const container = document.getElementById("notificationContainer");
+  const messageElement = document.getElementById("notificationMessage");
+  
+  messageElement.textContent = message;
+  container.classList.remove("hidden");
+  
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    hideNotification();
+  }, 3000);
+}
+
+function hideNotification() {
+  const container = document.getElementById("notificationContainer");
+  container.classList.add("hidden");
+}
+
+// Add event listener for close notification button
+document.getElementById("closeNotification").addEventListener("click", hideNotification);
+
 /**
  * Spins the wheel with animation and selects a random text
  */
 function spinWheel() {
   if (isSpinning) return;
+  
+  // Check if there are any rewards
+  if (rewards.length === 0) {
+    showNotification("Please add rewards before spinning the wheel.");
+    return;
+  }
 
   isSpinning = true;
   spinBtn.disabled = true;
